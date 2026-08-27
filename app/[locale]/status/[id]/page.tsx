@@ -1,0 +1,81 @@
+import Link from 'next/link';
+import { ArrowLeft, Check, CheckCircle2, Circle, Clock3, FileCheck2, ShieldCheck } from 'lucide-react';
+import { notFound, redirect } from 'next/navigation';
+import { requireChatGPTUser } from '@/app/chatgpt-auth';
+import { PrintButton } from '@/components/print-button';
+import { SiteHeader } from '@/components/site-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { getApplicationBundle } from '@/lib/data';
+import { getCopy, isLocale, localPath } from '@/lib/i18n';
+
+export const dynamic = 'force-dynamic';
+
+export default async function StatusPage({ params }: { params: Promise<{ locale: string; id: string }> }) {
+  const { locale: rawLocale, id } = await params;
+  if (!isLocale(rawLocale)) notFound();
+  const locale = rawLocale;
+  const copy = getCopy(locale);
+  const user = await requireChatGPTUser(localPath(locale, `/status/${id}`));
+  const bundle = await getApplicationBundle(user.userId, id);
+  if (!bundle) notFound();
+  if (bundle.application.status === 'Draft') redirect(localPath(locale, `/renew/${id}`));
+  const { application, payment } = bundle;
+  if (!payment || !application.submittedAt) notFound();
+  const dateLocale = locale === 'hi' ? 'hi-IN' : 'en-IN';
+  const timeline = [
+    [copy.submitted, copy.statusSubmittedBody, 'complete'],
+    [copy.documentsChecking, copy.statusDocumentsBody, 'current'],
+    [copy.underReview, copy.statusReviewBody, 'upcoming'],
+    [copy.approved, copy.statusApprovedBody, 'upcoming'],
+  ] as const;
+
+  return (
+    <div lang={locale}>
+      <SiteHeader locale={locale} user={user} />
+      <main id="main" className="py-10 sm:py-14">
+        <div className="shell max-w-5xl">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div><p className="eyebrow">{copy.receiptEyebrow}</p><h1 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">{copy.receiptTitle}</h1><p className="mt-4 max-w-2xl text-lg text-[#52667A]">{copy.receiptBody}</p></div>
+            <PrintButton label={copy.downloadReceipt} />
+          </div>
+
+          <section aria-labelledby="receipt-heading" className="mt-10 overflow-hidden rounded-2xl border bg-white shadow-[0_16px_45px_rgba(16,42,67,.07)]">
+            <div className="flex flex-col gap-5 border-b bg-[#F0F9F5] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+              <div className="flex items-center gap-4"><span className="grid size-12 place-items-center rounded-full bg-white text-[#1F7A4C]"><CheckCircle2 /></span><div><h2 id="receipt-heading" className="text-2xl font-semibold">{copy.submitted}</h2><p className="text-sm text-[#52667A]">{copy.prototype}</p></div></div>
+              <Badge className="w-fit border border-[#9AC9B0] bg-white px-3 py-1 text-[#1F7A4C]"><ShieldCheck />SYNTHETIC</Badge>
+            </div>
+            <dl className="grid p-6 sm:grid-cols-2 sm:p-8">
+              <ReceiptDatum label={copy.applicationNumber} value={`BWMI-${application.id.slice(0, 8).toUpperCase()}`} />
+              <ReceiptDatum label={copy.transactionNumber} value={payment.transactionReference} />
+              <ReceiptDatum label={copy.submittedOn} value={new Intl.DateTimeFormat(dateLocale, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(application.submittedAt))} />
+              <ReceiptDatum label={copy.amount} value="₹450.00 (mock)" />
+            </dl>
+          </section>
+
+          <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_280px]">
+            <section aria-labelledby="track-heading">
+              <h2 id="track-heading" className="text-2xl font-semibold sm:text-3xl">{copy.trackTitle}</h2>
+              <ol className="mt-6">
+                {timeline.map(([title, body, state], index) => (
+                  <li key={title} className="relative grid grid-cols-[40px_1fr] gap-3 pb-8 last:pb-0">
+                    {index < timeline.length - 1 && <span aria-hidden="true" className="absolute left-[15px] top-8 h-[calc(100%-8px)] w-0.5 bg-[#CBD5E1]" />}
+                    <span className={`relative z-10 grid size-8 place-items-center rounded-full border-2 ${state === 'complete' ? 'border-[#1F7A4C] bg-[#1F7A4C] text-white' : state === 'current' ? 'border-[#0F766E] bg-white text-[#0F766E]' : 'border-[#B8C5D3] bg-[#F6F8FB] text-[#52667A]'}`}>{state === 'complete' ? <Check className="size-4" /> : state === 'current' ? <Clock3 className="size-4" /> : <Circle className="size-3" />}</span>
+                    <div className="pt-0.5"><div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-semibold">{title}</h3><span className="text-xs font-semibold uppercase tracking-wider text-[#52667A]">{state === 'complete' ? copy.completed : state === 'current' ? copy.current : copy.upcoming}</span></div><p className="mt-1 text-[#52667A]">{body}</p></div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+            <aside className="h-fit border-l-4 border-[#C76A15] bg-white p-6"><FileCheck2 className="text-[#0F766E]" /><h2 className="mt-4 text-lg font-semibold">{copy.expected}</h2><p className="mt-1 text-[#52667A]">{copy.expectedValue}</p><p className="mt-4 text-xs text-[#52667A]">{copy.prototype}</p></aside>
+          </div>
+
+          <div className="no-print mt-12 border-t pt-7"><Button asChild variant="outline" className="h-11 bg-white px-4"><Link href={localPath(locale, '/dashboard')}><ArrowLeft />{copy.returnDashboard}</Link></Button></div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function ReceiptDatum({ label, value }: { label: string; value: string }) {
+  return <div className="border-b py-5 last:border-b-0 sm:border-b sm:border-r sm:px-5 sm:first:pl-0 sm:even:border-r-0"><dt className="text-sm font-medium text-[#52667A]">{label}</dt><dd className="mt-1 break-words font-mono text-sm font-semibold text-[#102A43] sm:text-base">{value}</dd></div>;
+}

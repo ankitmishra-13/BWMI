@@ -1,0 +1,88 @@
+import Link from 'next/link';
+import { ArrowRight, CalendarDays, CarFront, CheckCircle2, Clock3, FileCheck2, MapPin, UserRound } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { requireChatGPTUser } from '@/app/chatgpt-auth';
+import { SiteHeader } from '@/components/site-header';
+import { StartRenewalButton } from '@/components/start-renewal-button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ensureSyntheticCitizen, getCitizenWorkspace } from '@/lib/data';
+import { getCopy, isLocale, localPath } from '@/lib/i18n';
+
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale: rawLocale } = await params;
+  if (!isLocale(rawLocale)) notFound();
+  const locale = rawLocale;
+  const copy = getCopy(locale);
+  const user = await requireChatGPTUser(localPath(locale, '/dashboard'));
+  await ensureSyntheticCitizen(user, locale);
+  const { licence, applications } = await getCitizenWorkspace(user.userId);
+  if (!licence) throw new Error('Synthetic licence could not be prepared.');
+  const dateLocale = locale === 'hi' ? 'hi-IN' : 'en-IN';
+
+  return (
+    <div lang={locale}>
+      <SiteHeader locale={locale} user={user} />
+      <main id="main" className="py-10 sm:py-14">
+        <div className="shell">
+          <p className="eyebrow">{copy.workspaceEyebrow}</p>
+          <div className="mt-2 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div><h1 className="max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">{copy.workspaceTitle}</h1><p className="mt-3 text-[#52667A]">{copy.welcome}, {user.displayName}.</p></div>
+            <StartRenewalButton locale={locale} label={copy.startRenewal} />
+          </div>
+
+          <section aria-labelledby="licence-heading" className="mt-10 overflow-hidden rounded-2xl border bg-white">
+            <div className="grid lg:grid-cols-[1.45fr_.55fr]">
+              <div className="p-6 sm:p-8">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div><p className="text-sm font-semibold text-[#52667A]">{copy.licenceLabel}</p><h2 id="licence-heading" className="mt-1 text-3xl font-semibold tracking-wide">{licence.maskedNumber}</h2></div>
+                  <Badge className="border border-[#9AC9B0] bg-[#EAF7EF] px-3 py-1 text-[#1F7A4C]"><CheckCircle2 />{copy.eligible}</Badge>
+                </div>
+                <dl className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+                  <LicenceDatum icon={UserRound} label={copy.holder} value={licence.holderName} />
+                  <LicenceDatum icon={CalendarDays} label={copy.validUntil} value={new Intl.DateTimeFormat(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(licence.validUntil))} />
+                  <LicenceDatum icon={CarFront} label={copy.vehicleClasses} value={licence.vehicleClasses} />
+                  <LicenceDatum icon={MapPin} label={copy.issuedIn} value={licence.issueState} />
+                </dl>
+                <div className="mt-7 border-t pt-5"><dt className="text-sm font-medium text-[#52667A]">{copy.address}</dt><dd className="mt-1 font-medium">{licence.address}</dd></div>
+              </div>
+              <aside className="border-t bg-[#F1F7F7] p-6 lg:border-l lg:border-t-0 lg:p-8">
+                <h2 className="text-xl font-semibold">{copy.whatYouNeed}</h2>
+                <ul className="mt-5 flex flex-col gap-4 text-sm text-[#40556A]">
+                  {[copy.need1, copy.need2, copy.need3].map((item) => <li key={item} className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 size-5 shrink-0 text-[#0F766E]" />{item}</li>)}
+                </ul>
+              </aside>
+            </div>
+          </section>
+
+          <section aria-labelledby="history-heading" className="mt-12">
+            <div className="flex items-center justify-between gap-4"><h2 id="history-heading" className="text-2xl font-semibold sm:text-3xl">{copy.applicationHistory}</h2><span className="text-sm text-[#52667A]">{applications.length}</span></div>
+            {applications.length === 0 ? <p className="mt-5 border-y py-7 text-[#52667A]">{copy.noApplications}</p> : (
+              <div className="mt-5 border-y">
+                {applications.map((application) => {
+                  const submitted = application.status !== 'Draft';
+                  const href = submitted ? localPath(locale, `/status/${application.id}`) : localPath(locale, `/renew/${application.id}`);
+                  return (
+                    <article key={application.id} className="grid gap-4 border-b py-6 last:border-0 sm:grid-cols-[1fr_auto] sm:items-center">
+                      <div className="flex items-start gap-4">
+                        <span className={`grid size-11 shrink-0 place-items-center rounded-full ${submitted ? 'bg-[#EAF7EF] text-[#1F7A4C]' : 'bg-[#FFF3E8] text-[#C76A15]'}`}>{submitted ? <FileCheck2 /> : <Clock3 />}</span>
+                        <div><h3 className="font-heading text-lg font-semibold">{submitted ? copy.submitted : `${copy.stepOf.replace('{current}', String(application.currentStep + 1)).replace('{total}', '6')}`}</h3><p className="mt-1 font-mono text-xs text-[#52667A]">{application.id.slice(0, 8).toUpperCase()} · {new Intl.DateTimeFormat(dateLocale, { dateStyle: 'medium' }).format(new Date(application.updatedAt))}</p></div>
+                      </div>
+                      <Button asChild variant="outline" className="h-11 justify-self-start px-4 sm:justify-self-end"><Link href={href}>{submitted ? copy.viewStatus : copy.resumeRenewal}<ArrowRight /></Link></Button>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function LicenceDatum({ icon: Icon, label, value }: { icon: typeof UserRound; label: string; value: string }) {
+  return <div className="flex items-start gap-3"><Icon className="mt-1 size-5 shrink-0 text-[#0F766E]" aria-hidden="true" /><div><dt className="text-sm font-medium text-[#52667A]">{label}</dt><dd className="mt-0.5 font-semibold">{value}</dd></div></div>;
+}
