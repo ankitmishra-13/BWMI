@@ -3,6 +3,8 @@ import { ArrowDownRight, ArrowRight, BookOpenText, CarFront, ChartNoAxesCombined
 import { notFound } from 'next/navigation';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { LandingVisual } from '@/components/landing-visual';
+import { JourneyPreview } from '@/components/journey-preview';
+import { SectionRail } from '@/components/section-rail';
 import { SiteHeader } from '@/components/site-header';
 import { Button } from '@/components/ui/button';
 import { getCopy, isLocale, localPath } from '@/lib/i18n';
@@ -24,17 +26,9 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
   return (
     <div lang={locale} className="civic-paper">
       <SiteHeader locale={locale} user={user} />
-      <main id="main" className="overflow-hidden">
+      <main id="main" className="overflow-x-clip">
         <div className="shell grid md:grid-cols-[168px_minmax(0,1fr)] md:gap-10 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-14">
-          <aside className="hidden md:block">
-            <nav aria-label={locale === 'hi' ? 'पृष्ठ अनुभाग' : 'Page sections'} className="sticky top-24 flex flex-col gap-1 pt-20 text-sm">
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[.14em] text-muted-foreground">{portal.brand}</p>
-              <a href="#find-service" className="min-h-10 rounded-full px-3 py-2 font-medium hover:bg-white">{portal.search}</a>
-              <a href="#popular" className="min-h-10 rounded-full px-3 py-2 text-muted-foreground hover:bg-white hover:text-foreground">{portal.popularEyebrow}</a>
-              <a href="#service-index" className="min-h-10 rounded-full px-3 py-2 text-muted-foreground hover:bg-white hover:text-foreground">{portal.indexEyebrow}</a>
-              <a href="#renewal-path" className="min-h-10 rounded-full px-3 py-2 text-muted-foreground hover:bg-white hover:text-foreground">{portal.renewalEyebrow}</a>
-            </nav>
-          </aside>
+          <SectionRail locale={locale} user={user} />
 
           <div className="min-w-0">
             <section id="find-service" className="scroll-mt-24 py-16 sm:py-20 lg:grid lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_390px] lg:items-center lg:gap-10 lg:py-12">
@@ -108,6 +102,8 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
                 })}
               </div>
             </section>
+
+            <div className="pb-20 sm:pb-28"><JourneyPreview locale={locale} service={renewal} /></div>
           </div>
         </div>
 
@@ -124,7 +120,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           </div>
         </section>
 
-        <section className="py-16 sm:py-24">
+        <section id="trust" className="scroll-mt-28 py-16 sm:py-24">
           <div className="shell">
             <div className="ios-panel grid gap-6 p-7 sm:grid-cols-[52px_1fr] sm:p-10">
               <span className="grid size-12 place-items-center rounded-full bg-secondary"><ShieldCheck className="size-5" aria-hidden="true" /></span>
@@ -133,13 +129,6 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           </div>
         </section>
       </main>
-
-      <footer className="border-t bg-white/72 py-10">
-        <div className="shell grid gap-8 sm:grid-cols-[1fr_auto] sm:items-end">
-          <div><p className="font-heading text-2xl font-semibold">{portal.brand}</p><p className="mt-2 max-w-xl text-sm text-muted-foreground">{portal.prototype}</p><p className="mt-4 text-xs text-muted-foreground">{portal.footerLine}</p></div>
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium"><Link href={localPath(locale, '/services')}>{portal.allServices}</Link><Link href={servicePath(locale, renewal)}>{portal.heroSecondary}</Link><Link href={localPath(locale, '/login')}>{portal.signIn}</Link></nav>
-        </div>
-      </footer>
     </div>
   );
 }

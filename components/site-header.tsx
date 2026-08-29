@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ArrowRight, CircleUserRound, Menu, Search, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CircleUserRound, FileText, Menu, Search, ShieldCheck, UserRound } from 'lucide-react';
+import { accountCopy } from '@/lib/account-copy';
 import { chatGPTSignOutPath, demoSignInPath, type ChatGPTUser } from '@/app/chatgpt-auth';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
@@ -73,7 +74,7 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
                   ))}
                 </nav>
                 {user ? (
-                  <Button asChild variant="secondary" className="mt-4 w-full"><Link href={localPath(locale, '/dashboard')}><CircleUserRound data-icon="inline-start" />{portal.dashboard}</Link></Button>
+                  <div className="mt-4 grid grid-cols-2 gap-2"><Button asChild variant="secondary"><Link href={localPath(locale, '/applications')}><FileText data-icon="inline-start" />{accountCopy[locale].applications}</Link></Button><Button asChild variant="outline"><Link href={localPath(locale, '/profile')}><UserRound data-icon="inline-start" />{accountCopy[locale].profile}</Link></Button></div>
                 ) : (
                   <Button asChild className="mt-4 w-full"><Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link></Button>
                 )}
@@ -88,11 +89,13 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
 
 function AccountActions({ locale, user }: { locale: Locale; user: ChatGPTUser }) {
   const portal = portalCopy[locale];
+  const account = accountCopy[locale];
   return (
     <>
       <Button asChild variant="secondary" size="sm" className="hidden md:inline-flex">
-        <Link href={localPath(locale, '/dashboard')}><CircleUserRound data-icon="inline-start" />{portal.dashboard}</Link>
+        <Link href={localPath(locale, '/applications')}><CircleUserRound data-icon="inline-start" />{account.applications}</Link>
       </Button>
+      <Button asChild variant="ghost" size="sm" className="hidden xl:inline-flex"><Link href={localPath(locale, '/profile')}><UserRound data-icon="inline-start" />{account.profile}</Link></Button>
       {user.authSource === 'demo' ? (
         <form action="/api/demo-auth/logout" method="post" className="hidden sm:block">
           <input type="hidden" name="returnTo" value={localPath(locale)} />

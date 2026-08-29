@@ -93,6 +93,16 @@ Use a persistent compact header with product name, prototype notice, language sw
 
 The dashboard is a readable licence summary and next action, not a metrics dashboard. Status uses a vertical timeline with next-step guidance.
 
+The authenticated area also includes a persistent left account rail with Overview, My applications, Profile, and Browse services. My applications separates resumable drafts from submitted journeys; Profile allows only clearly fictional `@bwmi.test` identity values. The public landing-page rail remains sticky for the full editorial index and exposes account destinations below the page sections.
+
+### Shared footer
+
+Every locale page ends with one common Raahi footer derived from the supplied editorial reference: a quiet moving capability strip, large service CTA, useful link columns, oversized low-contrast Raahi wordmark, prototype disclosure, and back-to-top action. It is navigational and brand-building, not a duplicate sitemap wall. Reduced-motion users receive a static strip.
+
+### Differentiating feature — Journey Preview
+
+Every service brief exposes a dark, route-textured Journey Preview before the form. It makes estimated time, sample fee, number of stages, requirements, draft persistence, recovery behaviour, and mocked handoffs visible before sign-in. This is the core product contrast: organise around the citizen’s goal and preserve context through receipt/status rather than making the citizen discover portals and dependencies mid-task.
+
 ## Component rules
 
 - Use shadcn primitives for Button, Input, Label, Select, Checkbox, Dialog/Sheet, Alert, Separator, and accessible form composition.
@@ -155,3 +165,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen po
 - 2026-08-29: Scope expanded to a searchable transport-service hub. Adopted an editorial civic field-guide interface, added complete portal navigation and synthetic service workflows, retained licence renewal as the hero flow, and explicitly rejected official Parivahan identity under the hackathon non-endorsement rule.
 - 2026-08-29: Production hosting changed from OpenAI Sites to Cloudflare Workers because Sites access was unavailable in the active Enterprise workspace. D1 and the signed synthetic demo session remain unchanged.
 - 2026-08-29: User approved a complete frontend redesign based on the supplied `editorial-landing-page` folder. The system now uses Fraunces/Geist for English, supported Devanagari companions for Hindi, near-monochrome editorial colour, iOS-like rounded panels and motion, and an original security-paper route texture.
+- 2026-08-29: Added a genuinely sticky page/account rail, shared editorial Raahi footer, dedicated My applications and editable synthetic Profile pages, and the Journey Preview feature that reveals time, fee, requirements, resumability, and recovery before a citizen starts.

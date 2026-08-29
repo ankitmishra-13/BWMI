@@ -37,5 +37,13 @@ export const serviceApplicationUpdateSchema = z.discriminatedUnion('step', [
   z.object({ step: z.literal(3), data: z.object({ declarationsAccepted: z.literal(true) }) }),
 ]);
 
+export const syntheticProfileSchema = z.object({
+  fullName: z.string().trim().min(2).max(60),
+  email: z.string().trim().email().max(120).refine((value) => value.toLowerCase().endsWith('@bwmi.test'), 'Use the fictional @bwmi.test address.'),
+  syntheticPhone: z.string().trim().regex(/^\+91 [6-9]\d{4} \d{5}$/, 'Use the displayed synthetic mobile format.'),
+  preferredLocale: z.enum(['en', 'hi']),
+});
+
 export type ContactInput = z.infer<typeof contactSchema>;
 export type ApplicationUpdate = z.infer<typeof applicationUpdateSchema>;
+export type SyntheticProfileInput = z.infer<typeof syntheticProfileSchema>;

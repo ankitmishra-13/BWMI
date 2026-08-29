@@ -41,7 +41,7 @@ export async function ensureSyntheticCitizen(user: ChatGPTUser, locale: Locale) 
     preferredLocale: locale, syntheticPhone: '+91 98765 78120', createdAt: timestamp, updatedAt: timestamp,
   }).onConflictDoUpdate({
     target: profiles.userId,
-    set: { email: syntheticEmail, fullName: syntheticName, preferredLocale: locale, updatedAt: timestamp },
+    set: { preferredLocale: locale, updatedAt: timestamp },
   });
 
   await db.insert(driverLicences).values({
@@ -50,6 +50,17 @@ export async function ensureSyntheticCitizen(user: ChatGPTUser, locale: Locale) 
     issueState: 'Delhi', vehicleClasses: 'LMV, MCWG', address: '24 Sample Marg, New Delhi 110001',
     eligible: true, createdAt: timestamp,
   }).onConflictDoNothing({ target: driverLicences.userId });
+}
+
+export async function getCitizenProfile(userId: string) {
+  const [profile] = await getDb().select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
+  return profile ?? null;
+}
+
+export async function updateSyntheticProfile(userId: string, input: { fullName: string; email: string; syntheticPhone: string; preferredLocale: Locale }) {
+  const timestamp = now();
+  await getDb().update(profiles).set({ ...input, updatedAt: timestamp }).where(eq(profiles.userId, userId));
+  return getCitizenProfile(userId);
 }
 
 export async function getCitizenWorkspace(userId: string) {

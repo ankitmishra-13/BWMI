@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Clock3, FileCheck2, Ind
 import { notFound } from 'next/navigation';
 import { demoSignInPath, getChatGPTUser } from '@/app/chatgpt-auth';
 import { ServiceStartButton } from '@/components/service-start-button';
+import { JourneyPreview } from '@/components/journey-preview';
 import { SiteHeader } from '@/components/site-header';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -38,21 +39,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
 
-        <section className="py-12 sm:py-16">
-          <div className="shell grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div>
-              <h2 className="text-3xl sm:text-4xl">{portal.howItWorks}</h2>
-              <ol className="mt-7 border-y">
-                {[portal.step1, portal.step2, portal.step3, portal.step4].map((step, index) => <li key={step} className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b py-6 last:border-0"><span className="text-sm font-semibold text-muted-foreground">0{index + 1}</span><div><h3 className="text-lg">{step}</h3><p className="mt-1 text-sm text-muted-foreground">{stepDescription(index, locale, service.mode)}</p></div><CheckCircle2 className={`size-5 ${index === 3 ? 'text-foreground' : 'text-muted-foreground'}`} /></li>)}
-              </ol>
-            </div>
-            <aside>
-              <h2 className="text-2xl">{portal.requirements}</h2>
-              <ul className="mt-5 flex flex-col gap-4 text-sm leading-6 text-muted-foreground">{[portal.requirement1, portal.requirement2, portal.requirement3].map((item) => <li key={item} className="flex items-start gap-3"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-foreground" />{item}</li>)}</ul>
-              <Alert className="mt-7 bg-[#FFF9ED] text-[#5E4200]"><KeyRound /><AlertTitle>{hi ? 'डेमो OTP: 123456' : 'Demo OTP: 123456'}</AlertTitle><AlertDescription>{hi ? 'कोई SMS या वास्तविक पहचान जाँच नहीं।' : 'No SMS or real identity check.'}</AlertDescription></Alert>
-            </aside>
-          </div>
-        </section>
+        <section className="py-12 sm:py-16"><div className="shell"><JourneyPreview locale={locale} service={service} /><div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]"><div><h2 className="text-3xl sm:text-4xl">{portal.howItWorks}</h2><ol className="mt-7 border-y">{[portal.step1, portal.step2, portal.step3, portal.step4].map((step, index) => <li key={step} className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b py-6 last:border-0"><span className="text-sm font-semibold text-muted-foreground">0{index + 1}</span><div><h3 className="text-lg">{step}</h3><p className="mt-1 text-sm text-muted-foreground">{stepDescription(index, locale, service.mode)}</p></div><CheckCircle2 className={`size-5 ${index === 3 ? 'text-foreground' : 'text-muted-foreground'}`} /></li>)}</ol></div><aside><h2 className="text-2xl">{portal.requirements}</h2><ul className="mt-5 flex flex-col gap-4 text-sm leading-6 text-muted-foreground">{[portal.requirement1, portal.requirement2, portal.requirement3].map((item) => <li key={item} className="flex items-start gap-3"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-foreground" />{item}</li>)}</ul><Alert className="mt-7 bg-[#FFF9ED] text-[#5E4200]"><KeyRound /><AlertTitle>{hi ? 'डेमो OTP: 123456' : 'Demo OTP: 123456'}</AlertTitle><AlertDescription>{hi ? 'कोई SMS या वास्तविक पहचान जाँच नहीं।' : 'No SMS or real identity check.'}</AlertDescription></Alert></aside></div></div></section>
 
         <section id="prototype-view" className="scroll-mt-20 border-y bg-white/72 py-12 sm:py-16">
           <div className="shell">

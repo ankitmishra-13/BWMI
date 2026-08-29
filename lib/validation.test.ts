@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applicationUpdateSchema, contactSchema, documentSchema } from '@/lib/validation';
+import { applicationUpdateSchema, contactSchema, documentSchema, syntheticProfileSchema } from '@/lib/validation';
 
 describe('renewal validation', () => {
   it('accepts synthetic contact details', () => {
@@ -12,5 +12,10 @@ describe('renewal validation', () => {
 
   it('caps document metadata at five megabytes', () => {
     expect(documentSchema.safeParse({ documentType: 'Address proof', fileName: 'sample.pdf', sizeBytes: 5_000_001 }).success).toBe(false);
+  });
+
+  it('keeps profile email inside the synthetic demo domain', () => {
+    expect(syntheticProfileSchema.safeParse({ fullName: 'Aarav Sharma', email: 'citizen.demo@bwmi.test', syntheticPhone: '+91 98765 78120', preferredLocale: 'en' }).success).toBe(true);
+    expect(syntheticProfileSchema.safeParse({ fullName: 'Aarav Sharma', email: 'person@example.com', syntheticPhone: '+91 98765 78120', preferredLocale: 'en' }).success).toBe(false);
   });
 });

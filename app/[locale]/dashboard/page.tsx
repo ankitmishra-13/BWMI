@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, CalendarDays, CarFront, CheckCircle2, Clock3, FileCheck2, MapPin, UserRound } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { requireChatGPTUser } from '@/app/chatgpt-auth';
+import { AccountShell } from '@/components/account-shell';
 import { SiteHeader } from '@/components/site-header';
 import { StartRenewalButton } from '@/components/start-renewal-button';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +29,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
     <div lang={locale} className="civic-paper">
       <SiteHeader locale={locale} user={user} />
       <main id="main" className="py-10 sm:py-14">
-        <div className="shell">
+        <AccountShell locale={locale} active="overview">
           <p className="eyebrow">{copy.workspaceEyebrow}</p>
           <div className="mt-2 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div><h1 className="max-w-4xl text-4xl leading-[1.02] tracking-[-.035em] sm:text-6xl">{locale === 'hi' ? 'आपका काल्पनिक परिवहन कार्यक्षेत्र' : 'Your synthetic transport workspace'}</h1><p className="mt-3 text-muted-foreground">{copy.welcome}, {licence.holderName}. {locale === 'hi' ? 'यहाँ कोई वास्तविक नागरिक डेटा नहीं है।' : 'No real citizen data appears here.'}</p></div>
@@ -84,7 +85,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
             <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow">{portal.allServices}</p><h2 id="service-history-heading" className="mt-2 text-2xl sm:text-3xl">{locale === 'hi' ? 'अन्य सेवा आवेदन' : 'Other service applications'}</h2></div><Button asChild variant="outline"><Link href={localPath(locale, '/services')}>{portal.allServices}<ArrowRight data-icon="inline-end" /></Link></Button></div>
             {otherApplications.length === 0 ? <p className="mt-5 border-y py-7 text-muted-foreground">{locale === 'hi' ? 'अभी कोई अन्य सेवा आवेदन नहीं है।' : 'No other service applications yet.'}</p> : <div className="ios-panel mt-5 px-6">{otherApplications.map((application) => { const service = getService(application.serviceSlug); if (!service) return null; const submitted = application.status !== 'Draft'; const href = submitted ? localPath(locale, `/services/${service.slug}/receipt/${application.id}`) : localPath(locale, `/services/${service.slug}/apply/${application.id}`); return <article key={application.id} className="grid gap-4 border-b py-6 last:border-0 sm:grid-cols-[1fr_auto] sm:items-center"><div className="flex items-start gap-4"><span className={`grid size-11 shrink-0 place-items-center rounded-full ${submitted ? 'bg-[#EAF7EF] text-success' : 'bg-secondary text-foreground'}`}>{submitted ? <FileCheck2 /> : <Clock3 />}</span><div><h3 className="font-heading text-lg font-semibold">{t(service.title, locale)}</h3><p className="mt-1 text-sm text-muted-foreground">{submitted ? (locale === 'hi' ? 'मॉक आवेदन जमा' : 'Mock application submitted') : (locale === 'hi' ? `चरण ${application.currentStep + 1}, कुल 4` : `Step ${application.currentStep + 1} of 4`)}</p></div></div><Button asChild variant="outline" className="justify-self-start sm:justify-self-end"><Link href={href}>{submitted ? copy.viewStatus : copy.resumeRenewal}<ArrowRight data-icon="inline-end" /></Link></Button></article>; })}</div>}
           </section>
-        </div>
+        </AccountShell>
       </main>
     </div>
   );

@@ -74,11 +74,14 @@ button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
 .reveal-delay-2 { animation-delay: 170ms; }
 .nav-disclosure[open] > summary, .mobile-nav[open] > summary { background: var(--secondary); color: var(--foreground); }
 .nav-disclosure > div, .mobile-nav > div { animation: menu-in 180ms cubic-bezier(.22,1,.36,1); }
+.footer-ticker { animation: footer-flow 36s linear infinite; }
 @keyframes reveal-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes menu-in { from { opacity: 0; transform: translateY(-6px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes footer-flow { to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  .footer-ticker { animation: none !important; transform: none !important; }
 }
 @media (forced-colors: active) { * { border-color: CanvasText; } :focus-visible { outline: 3px solid Highlight; } }
 @media print { .no-print { display: none !important; } body { background: white; } }
