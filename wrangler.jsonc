@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "raahi-parivahan-db",
-      "database_id": "00000000-0000-4000-8000-000000000000",
+      "database_id": "9dc636a1-2426-4cb2-ae60-4b2f85b07ff6",
       "migrations_dir": "drizzle"
     }
   ],
