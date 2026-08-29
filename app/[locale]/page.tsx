@@ -37,12 +37,12 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
                 <h1 className="reveal reveal-delay-1 mt-5 max-w-[850px] text-[clamp(3.35rem,5.8vw,6.2rem)] leading-[.92] tracking-[-.052em]">{portal.heroTitle}</h1>
                 <p className="reveal reveal-delay-2 mt-7 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">{portal.heroBody}</p>
 
-                <form action={localPath(locale, '/services')} className="ios-panel mt-9 max-w-2xl p-2" role="search" aria-label={locale === 'hi' ? 'मुख्य सेवा खोज' : 'Main service search'}>
+                <form action={localPath(locale, '/services')} autoComplete="off" className="ios-panel search-shell mt-9 max-w-2xl p-2" role="search" aria-label={locale === 'hi' ? 'मुख्य सेवा खोज' : 'Main service search'}>
                   <label htmlFor="service-search" className="sr-only">{portal.search}</label>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="flex min-w-0 flex-1 items-center px-3">
                       <Search className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      <input id="service-search" name="q" type="search" placeholder={portal.searchPlaceholder} className="h-12 min-w-0 flex-1 bg-transparent px-3 text-base outline-none placeholder:text-muted-foreground" />
+                      <input id="service-search" name="q" type="search" autoComplete="off" autoCorrect="off" spellCheck={false} enterKeyHint="search" placeholder={portal.searchPlaceholder} className="search-control h-12 min-w-0 flex-1 bg-transparent px-3 text-base outline-none placeholder:text-muted-foreground" />
                     </div>
                     <Button type="submit" size="lg">{portal.searchAction}<ArrowRight data-icon="inline-end" /></Button>
                   </div>

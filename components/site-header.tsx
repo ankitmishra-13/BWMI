@@ -52,11 +52,11 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
                 <span className="menu-glyph" aria-hidden="true"><span /><span /><span /></span>
               </summary>
               <div className="mobile-menu-panel absolute right-0 top-14 max-h-[calc(100svh-7.5rem)] w-[min(92vw,370px)] overflow-y-auto overscroll-contain rounded-[1.75rem] border border-foreground/10 p-4 shadow-[0_30px_80px_rgba(16,42,67,.18)]">
-                <form action={localPath(locale, '/services')} className="mb-4" role="search" aria-label={locale === 'hi' ? 'मोबाइल सेवा खोज' : 'Mobile service search'}>
+                <form action={localPath(locale, '/services')} autoComplete="off" className="mb-4" role="search" aria-label={locale === 'hi' ? 'मोबाइल सेवा खोज' : 'Mobile service search'}>
                   <label htmlFor="mobile-search" className="px-1 text-xs font-semibold text-muted-foreground">{portal.search}</label>
-                  <div className="mt-2 flex items-center rounded-2xl border bg-white px-3 focus-within:ring-3 focus-within:ring-ring/25">
+                  <div className="search-shell mt-2 flex items-center rounded-2xl border bg-white px-3">
                     <Search className="size-4 text-muted-foreground" aria-hidden="true" />
-                    <input id="mobile-search" name="q" type="search" placeholder={portal.searchPlaceholder} className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none" />
+                    <input id="mobile-search" name="q" type="search" autoComplete="off" autoCorrect="off" spellCheck={false} enterKeyHint="search" placeholder={portal.searchPlaceholder} className="search-control h-12 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none" />
                     <button type="submit" className="min-h-11 px-2 text-sm font-semibold">{portal.searchAction}</button>
                   </div>
                 </form>

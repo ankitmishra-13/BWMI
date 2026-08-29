@@ -34,9 +34,9 @@ export default async function ServicesPage({ params, searchParams }: { params: P
         <section className="border-b border-foreground/8 bg-white/64 py-14 sm:py-20">
           <div className="shell grid gap-8 lg:grid-cols-[.75fr_1.25fr] lg:items-end">
             <div><p className="eyebrow">{portal.directoryEyebrow}</p><h1 className="mt-4 text-5xl leading-[.96] tracking-[-.035em] sm:text-7xl">{portal.directoryTitle}</h1><p className="mt-5 max-w-xl text-lg text-muted-foreground">{portal.directoryBody}</p></div>
-            <form action={localPath(locale, '/services')} className="lg:justify-self-end lg:w-full lg:max-w-2xl" role="search" aria-label={locale === 'hi' ? 'निर्देशिका खोज' : 'Directory search'}>
+            <form action={localPath(locale, '/services')} autoComplete="off" className="lg:justify-self-end lg:w-full lg:max-w-2xl" role="search" aria-label={locale === 'hi' ? 'निर्देशिका खोज' : 'Directory search'}>
               <label htmlFor="directory-search" className="font-semibold">{portal.search}</label>
-              <div className="ios-panel mt-2 flex items-center p-2 focus-within:ring-3 focus-within:ring-ring/25"><Search className="ml-2 size-5 shrink-0 text-muted-foreground" /><input id="directory-search" name="q" type="search" defaultValue={query.q} placeholder={portal.searchPlaceholder} className="h-12 min-w-0 flex-1 bg-transparent px-3 outline-none" /><Button type="submit">{portal.searchAction}</Button></div>
+              <div className="ios-panel search-shell mt-2 flex items-center p-2"><Search className="ml-2 size-5 shrink-0 text-muted-foreground" /><input id="directory-search" name="q" type="search" autoComplete="off" autoCorrect="off" spellCheck={false} enterKeyHint="search" defaultValue={query.q} placeholder={portal.searchPlaceholder} className="search-control h-12 min-w-0 flex-1 bg-transparent px-3 outline-none" /><Button type="submit">{portal.searchAction}</Button></div>
             </form>
           </div>
         </section>

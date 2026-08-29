@@ -108,6 +108,7 @@ Every service brief exposes a dark, route-textured Journey Preview before the fo
 - Use shadcn primitives for Button, Input, Label, Select, Checkbox, Dialog/Sheet, Alert, Separator, and accessible form composition.
 - Buttons use verb-first labels. One filled near-black pill action per region; secondary actions are quiet grey or outline pills. Hover lifts by 1px and press scales to `0.98` without delaying activation.
 - Inputs have persistent labels, optional hint text, and inline errors. Placeholder text is never the only label.
+- Text fields, textareas, selects, and search controls use a quiet neutral border with a soft civic-blue focus halo. Search focus belongs to the complete rounded search shell rather than drawing a sharp rectangle around the raw input; forced-colors mode retains the native high-contrast outline.
 - Use native date semantics where possible; never ask users to infer a date format.
 - Document selection stores metadata only and clearly says “No file is uploaded in this prototype.”
 - The mock OTP field exposes demo code `123456` beside the control.
@@ -168,3 +169,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen po
 - 2026-08-29: Added a genuinely sticky page/account rail, shared editorial Raahi footer, dedicated My applications and editable synthetic Profile pages, and the Journey Preview feature that reveals time, fee, requirements, resumability, and recovery before a citizen starts.
 - 2026-08-29: Refined the mobile account experience with overflow-safe layouts, an opaque navigation surface, animated menu state, visible sign-out, subtle civic-blue/mint highlights, and a shadcn service dropdown exposing the complete bilingual catalogue on desktop and mobile.
 - 2026-08-30: Replaced the service dropdown and loose category links with one shadcn Navigation Menu for All services, Licence, Vehicle, and Safety. Header hierarchy now prioritises brand, structured task discovery, search, language, and account actions; category calls-to-action are borderless text links with balanced spacing.
+- 2026-08-30: Standardised form focus styling across search, text, textarea, and select controls. Rounded controls now receive a restrained neutral edge and soft civic-blue halo, while service searches suppress irrelevant browser autocomplete suggestions and forced-colors focus remains explicit.

@@ -6,7 +6,13 @@ test('editorial service hub is clear and accessible', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Transport services');
   await expect(page.getByText('Independent hackathon prototype—not an official government service').first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore all services' }).first()).toHaveAttribute('href', '/en/services');
-  await expect(page.getByRole('search').first()).toBeVisible();
+  const mainSearch = page.getByRole('search', { name: 'Main service search' });
+  const mainSearchInput = page.getByRole('searchbox', { name: 'Search services' });
+  await expect(mainSearch).toBeVisible();
+  await expect(mainSearchInput).toHaveAttribute('autocomplete', 'off');
+  await mainSearchInput.focus();
+  expect(await mainSearchInput.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('none');
+  expect(await mainSearch.evaluate((element) => getComputedStyle(element, '::after').boxShadow)).not.toBe('none');
   await expect(page.getByRole('heading', { name: 'One guided route. Zero hidden handoffs.' })).toBeAttached();
   await expect(page.getByRole('contentinfo').getByRole('heading', { name: 'Start informed. Finish without the maze.' })).toBeAttached();
   const rail = page.locator('nav[aria-label="Page and account navigation"]');
@@ -58,6 +64,7 @@ test('language switching preserves the public page', async ({ page }) => {
 test('service directory supports search and opens a complete service brief', async ({ page }) => {
   await page.goto('/en/services?q=challan');
   await expect(page.getByRole('heading', { name: 'Choose what you need to do' })).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Search services' })).toHaveAttribute('autocomplete', 'off');
   await expect(page.getByRole('link', { name: 'Check and pay eChallan' })).toBeVisible();
   await page.goto('/en/services/echallan');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('eChallan');
