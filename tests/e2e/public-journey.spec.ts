@@ -15,7 +15,7 @@ test('editorial service hub is clear and accessible', async ({ page }) => {
   expect(results.violations).toEqual([]);
 });
 
-test('responsive navigation exposes the complete shadcn service menu', async ({ page }) => {
+test('responsive header exposes the complete shadcn navigation menu', async ({ page }) => {
   await page.goto('/en');
   const viewport = page.viewportSize();
   if (viewport && viewport.width < 1024) {
@@ -31,13 +31,20 @@ test('responsive navigation exposes the complete shadcn service menu', async ({ 
     const panel = mobileNav.locator('.mobile-menu-panel');
     await expect(panel).toBeVisible();
     expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe('rgb(255, 255, 255)');
-    await mobileNav.getByRole('button', { name: 'All services' }).click();
+    await expect(mobileNav.getByRole('link', { name: 'All services', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Driving licence', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Dashboards & reports', exact: true })).toBeVisible();
   } else {
-    await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'All services' }).click();
+    const primary = page.getByRole('navigation', { name: 'Primary' });
+    await primary.getByRole('button', { name: 'All services' }).click();
+    const menuViewport = primary.locator('[data-slot="navigation-menu-viewport"]');
+    await expect(menuViewport.getByRole('link', { name: 'Renew a driving licence', exact: true })).toBeVisible();
+    await expect(menuViewport.getByRole('link', { name: 'Rules and advisories', exact: true })).toBeVisible();
+    await expect(menuViewport.getByRole('link', { name: 'All services', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await primary.getByRole('button', { name: 'Licence' }).click();
+    await expect(menuViewport.getByRole('link', { name: 'Book a driving test', exact: true })).toBeVisible();
   }
-  await expect(page.getByRole('menuitem', { name: 'Renew a driving licence' })).toBeVisible();
-  await expect(page.getByRole('menuitem', { name: 'Rules and advisories' })).toBeAttached();
-  await expect(page.getByRole('menuitem', { name: 'View the complete service directory' })).toBeVisible();
 });
 
 test('language switching preserves the public page', async ({ page }) => {

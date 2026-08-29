@@ -3,12 +3,10 @@ import { ArrowRight, CircleUserRound, FileText, LogOut, Search, ShieldCheck, Use
 import { accountCopy } from '@/lib/account-copy';
 import { chatGPTSignOutPath, demoSignInPath, type ChatGPTUser } from '@/app/chatgpt-auth';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { ServiceDropdown } from '@/components/service-dropdown';
+import { ServiceNavigationMenu } from '@/components/service-navigation-menu';
 import { Button } from '@/components/ui/button';
 import { getCopy, localPath, type Locale } from '@/lib/i18n';
-import { categoryCopy, portalCopy, t } from '@/lib/services';
-
-const primaryCategories = ['licence', 'vehicle', 'compliance', 'guides'] as const;
+import { categoryCopy, categoryOrder, portalCopy, t } from '@/lib/services';
 
 export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUser | null }) {
   const copy = getCopy(locale);
@@ -24,25 +22,22 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
         </div>
       </aside>
 
-      <header className="ios-glass sticky top-0 z-30 border-b border-foreground/8">
-        <div className="shell flex h-16 items-center gap-4">
+      <header className="site-header-chrome sticky top-0 z-30 border-b border-foreground/8">
+        <div className="shell flex h-[4.5rem] items-center gap-4">
           <Link href={localPath(locale)} className="group flex shrink-0 items-center gap-2 rounded-full" aria-label={`${portal.brand} — ${portal.home}`}>
             <span className="relative size-3 rounded-full bg-primary after:absolute after:-right-1.5 after:-top-1.5 after:size-1.5 after:rounded-full after:bg-[#8DA5BE]" aria-hidden="true" />
-            <span className="font-heading text-[1.35rem] font-semibold leading-none tracking-[-.035em]">{portal.brand}</span>
+            <span className="flex flex-col">
+              <span className="font-heading text-[1.4rem] font-semibold leading-none tracking-[-.035em]">{portal.brand}</span>
+              <span className="mt-1 hidden text-[.58rem] font-semibold uppercase tracking-[.14em] text-muted-foreground 2xl:block">{locale === 'hi' ? 'नागरिक परिवहन' : 'Citizen transport'}</span>
+            </span>
           </Link>
 
-          <nav aria-label="Primary" className="ml-6 hidden h-full shrink-0 items-center gap-1 lg:flex">
-            <Link href={localPath(locale)} className="flex h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">{portal.home}</Link>
-            <ServiceDropdown locale={locale} />
-            {primaryCategories.map((category) => (
-              <Link key={category} href={localPath(locale, `/services?category=${category}`)} className="flex h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                {t(categoryCopy[category].short, locale)}
-              </Link>
-            ))}
+          <nav aria-label="Primary" className="ml-4 hidden h-full min-w-0 items-center lg:flex">
+            <ServiceNavigationMenu locale={locale} />
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
-            <Button asChild variant="ghost" size="sm" className="hidden 2xl:inline-flex">
+            <Button asChild variant="secondary" size="sm" className="hidden xl:inline-flex">
               <Link href={localPath(locale, '/services')}><Search data-icon="inline-start" />{portal.search}</Link>
             </Button>
             <LanguageSwitcher locale={locale} copy={copy} />
@@ -67,8 +62,8 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
                 </form>
                 <nav aria-label="Mobile primary" className="flex flex-col border-y">
                   <Link href={localPath(locale)} className="flex min-h-12 items-center justify-between border-b py-2 font-medium">{portal.home}<ArrowRight className="size-4 text-muted-foreground" /></Link>
-                  <ServiceDropdown locale={locale} mobile />
-                  {primaryCategories.map((category) => (
+                  <Link href={localPath(locale, '/services')} className="flex min-h-12 items-center justify-between border-b py-2 font-medium">{portal.allServices}<ArrowRight className="size-4 text-muted-foreground" /></Link>
+                  {categoryOrder.map((category) => (
                     <Link key={category} href={localPath(locale, `/services?category=${category}`)} className="flex min-h-12 items-center justify-between border-b py-2 font-medium last:border-0">
                       {t(categoryCopy[category].title, locale)}<ArrowRight className="size-4 text-muted-foreground" />
                     </Link>

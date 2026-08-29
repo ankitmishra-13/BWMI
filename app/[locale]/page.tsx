@@ -96,7 +96,9 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
                       <ul className="mt-6 border-y">
                         {items.slice(0, 5).map((service) => <li key={service.slug} className="border-b last:border-0"><Link href={servicePath(locale, service)} className="group flex min-h-12 items-center justify-between gap-4 py-2 text-sm font-medium">{t(service.title, locale)}<ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" /></Link></li>)}
                       </ul>
-                      <Button asChild variant="ghost" className="mt-4 px-0"><Link href={localPath(locale, `/services?category=${category}`)}>{portal.viewCategory} · {items.length}<ArrowRight data-icon="inline-end" /></Link></Button>
+                      <Link href={localPath(locale, `/services?category=${category}`)} className="group mt-5 inline-flex min-h-11 items-center gap-2 rounded-full py-2 pr-1 text-sm font-semibold transition-colors hover:text-muted-foreground">
+                        {portal.viewCategory} · {items.length}<ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                      </Link>
                     </section>
                   );
                 })}
