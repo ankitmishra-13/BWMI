@@ -4,9 +4,9 @@ A mobile-first, bilingual Build What Moves India prototype that reorganises Pari
 
 ## Architecture
 
-- OpenAI Sites / Vinext, React, TypeScript, and Tailwind CSS
+- Cloudflare Workers / Vinext, React, TypeScript, and Tailwind CSS
 - shadcn/ui with Radix primitives and Lucide icons
-- Sites authentication (ChatGPT sign-in) plus a signed public demo session
+- Signed public demo session with synthetic judge credentials
 - Cloudflare D1 with Drizzle ORM
 - React Hook Form and Zod
 - Optional OpenAI Responses API helper using `gpt-5.6-luna`; deterministic bilingual fallback when no key is configured
@@ -31,11 +31,11 @@ npm run db:generate
 npm run dev
 ```
 
-Sites development provides a local test identity. Apply the generated D1 migration to the local database if it has not been applied yet:
+Apply the generated D1 migrations to the local database if they have not been applied yet:
 
 ```bash
 npm run build
-npx wrangler d1 execute DB --local --config=dist/server/wrangler.json --file=drizzle/0000_chunky_impossible_man.sql --persist-to=.wrangler/state
+npx wrangler d1 migrations apply DB --local --persist-to=.wrangler/state
 ```
 
 Copy `.env.example` to `.env.local` only if the live AI explainer is needed. The complete citizen journey works without it.
@@ -51,3 +51,16 @@ npm run build
 ```
 
 The design authority is [`Design.md`](./Design.md).
+
+## Cloudflare deployment
+
+The production Worker and D1 binding are declared in `wrangler.jsonc`.
+
+```bash
+npx wrangler login
+npx wrangler d1 create raahi-parivahan-db
+npx wrangler d1 migrations apply raahi-parivahan-db --remote
+npx wrangler secret put DEMO_SESSION_SECRET
+npm run build
+npx wrangler deploy --config=dist/server/wrangler.json
+```

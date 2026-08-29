@@ -148,3 +148,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen po
 - 2026-08-28: Approved initial design contract from the hackathon plan.
 - 2026-08-28: Hosting changed from Vercel to OpenAI Sites. Supabase Auth/Postgres changed to Sites authentication and D1. The user journey, visual system, security constraints, and synthetic-data policy are unchanged.
 - 2026-08-29: Scope expanded to a searchable transport-service hub. Adopted an editorial civic field-guide interface, added complete portal navigation and synthetic service workflows, retained licence renewal as the hero flow, and explicitly rejected official Parivahan identity under the hackathon non-endorsement rule.
+- 2026-08-29: Production hosting changed from OpenAI Sites to Cloudflare Workers because Sites access was unavailable in the active Enterprise workspace. D1 and the signed synthetic demo session remain unchanged.

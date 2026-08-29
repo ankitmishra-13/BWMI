@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, KeyRound, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, KeyRound, ShieldCheck } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { chatGPTSignInPath, DEMO_EMAIL, DEMO_PASSWORD, getChatGPTUser, safeRelativeReturnPath } from '@/app/chatgpt-auth';
+import { DEMO_EMAIL, DEMO_PASSWORD, getChatGPTUser, safeRelativeReturnPath } from '@/app/chatgpt-auth';
 import { SiteHeader } from '@/components/site-header';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -68,10 +68,6 @@ export default async function LoginPage({ params, searchParams }: { params: Prom
 
             <Alert className="mt-6 border-[#A9D2CD] bg-[#F1FAF8]"><ShieldCheck /><AlertTitle>{hi ? 'केवल काल्पनिक डेटा' : 'Synthetic data only'}</AlertTitle><AlertDescription>{hi ? 'वास्तविक ID, संपर्क, OTP या भुगतान विवरण न डालें।' : 'Never enter a real ID, contact, OTP, or payment detail.'}</AlertDescription></Alert>
 
-            <div className="mt-6 border-t pt-6">
-              <p className="text-sm text-[#52667A]">{hi ? 'वैकल्पिक रूप से, Sites पर अपने ChatGPT सत्र का उपयोग करें।' : 'Alternatively, use your ChatGPT session when hosted on Sites.'}</p>
-              <Button asChild variant="outline" className="mt-3 h-11 w-full bg-white"><a href={chatGPTSignInPath(returnTo)}><Sparkles />{hi ? 'ChatGPT से जारी रखें' : 'Continue with ChatGPT'}</a></Button>
-            </div>
             <Button asChild variant="ghost" className="mt-4 h-11 px-0"><Link href={localPath(locale)}><ArrowLeft />{portal.home}</Link></Button>
           </section>
         </div>
