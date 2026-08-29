@@ -34,7 +34,7 @@ export function JourneyPreview({ locale, service }: { locale: Locale; service: T
             <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/12">
               <PreviewDatum icon={Clock3} label={copy.time} value={t(service.duration, locale)} />
               <PreviewDatum icon={IndianRupee} label={copy.fee} value={fee} />
-              <PreviewDatum icon={Route} label={copy.steps} value={service.renewalFlow ? '6' : '4'} />
+              <PreviewDatum icon={Route} label={copy.steps} value={service.renewalFlow ? '6' : service.mode === 'transaction' ? '5' : '4'} />
               <PreviewDatum icon={CheckCircle2} label={copy.handoffs} value={copy.noHandoffs} />
             </dl>
             <ol className="mt-7">

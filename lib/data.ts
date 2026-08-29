@@ -19,7 +19,7 @@ import {
 } from '@/db/schema';
 import type { Locale } from '@/lib/i18n';
 import type { TransportService } from '@/lib/services';
-import type { ApplicationUpdate } from '@/lib/validation';
+import type { ApplicationUpdate, MockPaymentMethod, ServiceApplicationUpdate } from '@/lib/validation';
 
 export type ApplicationBundle = {
   application: RenewalApplication;
@@ -76,6 +76,9 @@ export async function getCitizenWorkspace(userId: string) {
 export async function createServiceApplication(userId: string, service: TransportService): Promise<ServiceApplication> {
   const db = getDb();
   const timestamp = now();
+  const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
+  const [licence] = await db.select().from(driverLicences).where(eq(driverLicences.userId, userId)).limit(1);
+  if (!profile || !licence) throw new Error('Synthetic citizen profile is unavailable.');
   const application: ServiceApplication = {
     id: crypto.randomUUID(),
     userId,
@@ -83,7 +86,13 @@ export async function createServiceApplication(userId: string, service: Transpor
     category: service.category,
     currentStep: 0,
     status: 'Draft',
-    selection: null,
+    selection: 'standard',
+    contactEmail: profile.email,
+    contactPhone: profile.syntheticPhone,
+    address: licence.address,
+    requestValue: defaultServiceRequestValue(service),
+    requestReason: 'Citizen record update',
+    declarationsAccepted: false,
     reference: null,
     feePaise: service.feePaise ?? 0,
     submittedAt: null,
@@ -101,32 +110,57 @@ export async function getServiceApplication(userId: string, applicationId: strin
   return application ?? null;
 }
 
-export async function advanceServiceApplication(userId: string, applicationId: string, step: number, selection?: string): Promise<ServiceApplication | null> {
+export async function getServicePayment(userId: string, applicationId: string): Promise<Payment | null> {
+  const [payment] = await getDb().select().from(payments)
+    .where(and(eq(payments.applicationId, applicationId), eq(payments.userId, userId))).limit(1);
+  return payment ?? null;
+}
+
+export async function applyServiceApplicationUpdate(userId: string, applicationId: string, update: ServiceApplicationUpdate): Promise<ServiceApplication | null> {
   const existing = await getServiceApplication(userId, applicationId);
   if (!existing) return null;
   if (existing.status !== 'Draft') return existing;
+  if (update.step > existing.currentStep) throw new Error('Complete the current step first.');
   const timestamp = now();
-  const values: Partial<ServiceApplication> = { currentStep: Math.min(step + 1, 3), updatedAt: timestamp };
-  if (selection) values.selection = selection;
-  await getDb().update(serviceApplications).set(values)
-    .where(and(eq(serviceApplications.id, applicationId), eq(serviceApplications.userId, userId)));
+  if (update.step === 4) return completeServiceApplication(userId, applicationId, update.data.paymentMethod);
+  const values: Partial<ServiceApplication> = { currentStep: Math.max(existing.currentStep, update.step + 1), updatedAt: timestamp };
+  if (update.step === 1) Object.assign(values, update.data);
+  if (update.step === 3) values.declarationsAccepted = true;
+  await getDb().update(serviceApplications).set(values).where(and(eq(serviceApplications.id, applicationId), eq(serviceApplications.userId, userId)));
   return getServiceApplication(userId, applicationId);
 }
 
-export async function completeServiceApplication(userId: string, applicationId: string): Promise<ServiceApplication | null> {
+export async function completeServiceApplication(userId: string, applicationId: string, paymentMethod: MockPaymentMethod): Promise<ServiceApplication | null> {
   const existing = await getServiceApplication(userId, applicationId);
   if (!existing) return null;
   if (existing.status !== 'Draft') return existing;
+  if (!existing.declarationsAccepted || existing.currentStep < 4) throw new Error('Review the application before payment.');
   const timestamp = now();
   const reference = `RAAHI-${existing.serviceSlug.slice(0, 4).toUpperCase()}-${timestamp.slice(2, 10).replaceAll('-', '')}-${applicationId.slice(0, 5).toUpperCase()}`;
+  const transactionReference = `MOCK-PAY-${timestamp.slice(2, 10).replaceAll('-', '')}-${applicationId.slice(0, 6).toUpperCase()}`;
+  await getDb().insert(payments).values({
+    id: crypto.randomUUID(), applicationId, userId, amountPaise: existing.feePaise,
+    state: 'Mock successful', method: paymentMethod, transactionReference, paidAt: timestamp,
+  }).onConflictDoNothing({ target: payments.applicationId });
   await getDb().update(serviceApplications).set({
-    currentStep: 4,
+    currentStep: 5,
     status: 'Submitted',
     reference,
     submittedAt: timestamp,
     updatedAt: timestamp,
   }).where(and(eq(serviceApplications.id, applicationId), eq(serviceApplications.userId, userId)));
   return getServiceApplication(userId, applicationId);
+}
+
+function defaultServiceRequestValue(service: TransportService) {
+  if (service.slug === 'update-mobile-number') return '+91 91234 56789';
+  if (service.slug === 'change-address-rc') return '18 Demo Avenue, New Delhi 110002';
+  if (service.slug === 'echallan') return 'DL-01-DEMO-7812 · Challan DEMO-1042';
+  if (service.slug === 'vehicle-tax') return 'Annual tax period 2026–27';
+  if (service.slug.includes('duplicate')) return 'Replace a damaged synthetic document';
+  if (service.category === 'licence') return 'LMV — Light motor vehicle';
+  if (service.category === 'vehicle') return 'DL-01-DEMO-7812';
+  return 'Standard synthetic service request';
 }
 
 export async function createRenewal(userId: string) {
@@ -185,7 +219,7 @@ export async function applyApplicationUpdate(userId: string, applicationId: stri
     await db.update(renewalApplications).set({ declarationsAccepted: true, currentStep: 5, updatedAt: timestamp })
       .where(and(eq(renewalApplications.id, applicationId), eq(renewalApplications.userId, userId)));
   } else if (update.step === 5) {
-    return completeMockPayment(userId, applicationId);
+    return completeMockPayment(userId, applicationId, update.data.paymentMethod);
   } else {
     await advanceApplication(userId, applicationId, update.step + 1, timestamp);
   }
@@ -198,7 +232,7 @@ async function advanceApplication(userId: string, applicationId: string, current
     .where(and(eq(renewalApplications.id, applicationId), eq(renewalApplications.userId, userId)));
 }
 
-async function completeMockPayment(userId: string, applicationId: string) {
+async function completeMockPayment(userId: string, applicationId: string, paymentMethod: MockPaymentMethod) {
   const existing = await getApplicationBundle(userId, applicationId);
   if (!existing) throw new Error('Application not found.');
   if (existing.payment) return existing;
@@ -207,7 +241,7 @@ async function completeMockPayment(userId: string, applicationId: string) {
   const transactionReference = `MOCK-TXN-${paidAt.slice(2, 10).replaceAll('-', '')}-${applicationId.slice(0, 6).toUpperCase()}`;
   await db.insert(payments).values({
     id: crypto.randomUUID(), applicationId, userId, amountPaise: 45000,
-    state: 'Mock successful', transactionReference, paidAt,
+    state: 'Mock successful', method: paymentMethod, transactionReference, paidAt,
   });
   await db.update(renewalApplications).set({
     currentStep: 6, status: 'Submitted', submittedAt: paidAt, updatedAt: paidAt,

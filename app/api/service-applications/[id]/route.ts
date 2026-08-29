@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
-import { advanceServiceApplication, completeServiceApplication, getServiceApplication } from '@/lib/data';
+import { applyServiceApplicationUpdate, getServiceApplication } from '@/lib/data';
 import { serviceApplicationUpdateSchema } from '@/lib/validation';
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -11,8 +11,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (!parsed.success) return NextResponse.json({ error: 'This demo step is incomplete.' }, { status: 400 });
   const existing = await getServiceApplication(user.userId, id);
   if (!existing) return NextResponse.json({ error: 'Application not found.' }, { status: 404 });
-  const application = parsed.data.step === 3
-    ? await completeServiceApplication(user.userId, id)
-    : await advanceServiceApplication(user.userId, id, parsed.data.step, parsed.data.step === 1 ? parsed.data.data.selection : undefined);
-  return NextResponse.json({ application });
+  try {
+    const application = await applyServiceApplicationUpdate(user.userId, id, parsed.data);
+    return NextResponse.json({ application });
+  } catch {
+    return NextResponse.json({ error: 'Complete the current demo step before continuing.' }, { status: 409 });
+  }
 }

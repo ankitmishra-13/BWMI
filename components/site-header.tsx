@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { ArrowRight, CircleUserRound, FileText, LogOut, Search, ShieldCheck, UserRound } from 'lucide-react';
-import { accountCopy } from '@/lib/account-copy';
-import { chatGPTSignOutPath, demoSignInPath, type ChatGPTUser } from '@/app/chatgpt-auth';
+import { ArrowRight, Search, ShieldCheck } from 'lucide-react';
+import { demoSignInPath, type ChatGPTUser } from '@/app/chatgpt-auth';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { ProfileNavigationMenu } from '@/components/profile-navigation-menu';
 import { ServiceNavigationMenu } from '@/components/service-navigation-menu';
 import { Button } from '@/components/ui/button';
 import { getCopy, localPath, type Locale } from '@/lib/i18n';
@@ -40,12 +40,7 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
             <Button asChild variant="secondary" size="sm" className="hidden xl:inline-flex">
               <Link href={localPath(locale, '/services')}><Search data-icon="inline-start" />{portal.search}</Link>
             </Button>
-            <LanguageSwitcher locale={locale} copy={copy} />
-            {user ? <AccountActions locale={locale} user={user} /> : (
-              <Button asChild size="sm" className="hidden sm:inline-flex">
-                <Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link>
-              </Button>
-            )}
+            {user ? <ProfileNavigationMenu locale={locale} user={user} /> : <><LanguageSwitcher locale={locale} copy={copy} /><Button asChild size="sm" className="hidden sm:inline-flex"><Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link></Button></>}
 
             <details className="mobile-nav relative lg:hidden">
               <summary className="pressable flex size-11 cursor-pointer list-none items-center justify-center rounded-full border bg-white/90 [&::-webkit-details-marker]:hidden" aria-label={portal.menu}>
@@ -69,55 +64,12 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
                     </Link>
                   ))}
                 </nav>
-                {user ? (
-                  <div className="mt-4 grid gap-2">
-                    <div className="grid gap-2 min-[360px]:grid-cols-2">
-                      <Button asChild variant="secondary" className="min-w-0"><Link href={localPath(locale, '/applications')}><FileText data-icon="inline-start" />{accountCopy[locale].applications}</Link></Button>
-                      <Button asChild variant="outline" className="min-w-0"><Link href={localPath(locale, '/profile')}><UserRound data-icon="inline-start" />{accountCopy[locale].profile}</Link></Button>
-                    </div>
-                    <MobileSignOut locale={locale} user={user} />
-                  </div>
-                ) : (
-                  <Button asChild className="mt-4 w-full"><Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link></Button>
-                )}
+                {!user && <Button asChild className="mt-4 w-full"><Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link></Button>}
               </div>
             </details>
           </div>
         </div>
       </header>
-    </>
-  );
-}
-
-function MobileSignOut({ locale, user }: { locale: Locale; user: ChatGPTUser }) {
-  const portal = portalCopy[locale];
-  return user.authSource === 'demo' ? (
-    <form action="/api/demo-auth/logout" method="post" className="w-full">
-      <input type="hidden" name="returnTo" value={localPath(locale)} />
-      <Button type="submit" variant="outline" className="w-full"><LogOut data-icon="inline-start" />{portal.signOut}</Button>
-    </form>
-  ) : (
-    <Button asChild variant="outline" className="w-full"><a href={chatGPTSignOutPath(localPath(locale))}><LogOut data-icon="inline-start" />{portal.signOut}</a></Button>
-  );
-}
-
-function AccountActions({ locale, user }: { locale: Locale; user: ChatGPTUser }) {
-  const portal = portalCopy[locale];
-  const account = accountCopy[locale];
-  return (
-    <>
-      <Button asChild variant="secondary" size="sm" className="hidden md:inline-flex">
-        <Link href={localPath(locale, '/applications')}><CircleUserRound data-icon="inline-start" />{account.applications}</Link>
-      </Button>
-      <Button asChild variant="ghost" size="sm" className="hidden xl:inline-flex"><Link href={localPath(locale, '/profile')}><UserRound data-icon="inline-start" />{account.profile}</Link></Button>
-      {user.authSource === 'demo' ? (
-        <form action="/api/demo-auth/logout" method="post" className="hidden sm:block">
-          <input type="hidden" name="returnTo" value={localPath(locale)} />
-          <Button type="submit" variant="outline" size="sm">{portal.signOut}</Button>
-        </form>
-      ) : (
-        <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><a href={chatGPTSignOutPath(localPath(locale))}>{portal.signOut}</a></Button>
-      )}
     </>
   );
 }

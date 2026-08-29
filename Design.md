@@ -75,14 +75,14 @@ Below the fold, show popular citizen tasks, the full grouped service directory, 
 
 ### Portal navigation
 
-- The compact header always exposes Home, Services, Driving licence, Vehicle, Safety & compliance, Guides, language, and account state.
+- The compact header always exposes Home, Services, Driving licence, Vehicle, Safety & compliance, Guides, search, and account state. Once signed in, a single profile navigation control contains Overview, My applications, Profile, the page-preserving language switch, and Sign out; these actions must not appear as a competing row of pills.
 - Desktop uses restrained text links plus a keyboard-operable shadcn service dropdown; mobile uses one rounded, opaque navigation panel with the same destinations and a scrollable full-service menu.
 - Search is a first-class labelled control, never an icon-only affordance.
 - The authenticated account area shows active and past synthetic applications across service types; it is not an admin dashboard.
 
 ### Authenticated workspace
 
-Use a persistent compact header with product name, prototype notice, language switcher, account control, and sign-out. The main area contains:
+Use a persistent compact header with product name, prototype notice, service navigation, and one account menu. The main area contains:
 
 1. a small orientation eyebrow;
 2. one clear page title and contextual status;
@@ -112,7 +112,8 @@ Every service brief exposes a dark, route-textured Journey Preview before the fo
 - Use native date semantics where possible; never ask users to infer a date format.
 - Document selection stores metadata only and clearly says “No file is uploaded in this prototype.”
 - The mock OTP field exposes demo code `123456` beside the control.
-- The payment screen never renders card, bank, or UPI inputs. It only confirms a mocked ₹450 transaction.
+- Every transactional service uses a persisted, resumable form: confirm the synthetic source record, edit the requested fictional value and contact details, enter the visible mock OTP, compare an explicit before/after review, accept the declaration, then enter the mock gateway.
+- The payment gateway never renders card, bank, or UPI credential inputs. It offers clearly labelled mock UPI, mock card, and mock net-banking choices; shows the sample amount and application reference; provides an intentional failed-payment recovery preview; and records only the chosen mock method and generated transaction reference.
 - The AI explainer opens in a Sheet and includes its limits above the question field.
 - Panels are used only for an interactive object, receipt, form, or meaningful status group. Use `24–32px` rounding, hairline borders, and generous insets; avoid nested rounded containers and icon-only controls without accessible names.
 
@@ -170,3 +171,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen po
 - 2026-08-29: Refined the mobile account experience with overflow-safe layouts, an opaque navigation surface, animated menu state, visible sign-out, subtle civic-blue/mint highlights, and a shadcn service dropdown exposing the complete bilingual catalogue on desktop and mobile.
 - 2026-08-30: Replaced the service dropdown and loose category links with one shadcn Navigation Menu for All services, Licence, Vehicle, and Safety. Header hierarchy now prioritises brand, structured task discovery, search, language, and account actions; category calls-to-action are borderless text links with balanced spacing.
 - 2026-08-30: Standardised form focus styling across search, text, textarea, and select controls. Rounded controls now receive a restrained neutral edge and soft civic-blue halo, while service searches suppress irrelevant browser autocomplete suggestions and forced-colors focus remains explicit.
+- 2026-08-30: Consolidated authenticated header actions into one shadcn profile navigation menu. Replaced the generic service demo with a persisted five-step application flow containing editable synthetic data, explicit before/after review, visible demo OTP, recoverable validation, and a dedicated credential-free mock payment gateway with receipt metadata.

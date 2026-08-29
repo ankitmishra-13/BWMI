@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileCheck2, IndianRupee, Lo
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { AssistantSheet } from '@/components/assistant-sheet';
+import { MockPaymentGateway, type MockGatewayState } from '@/components/mock-payment-gateway';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { ApplicationBundle } from '@/lib/data';
 import type { Copy, Locale } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { contactSchema, type ContactInput } from '@/lib/validation';
+import { contactSchema, type ContactInput, type MockPaymentMethod } from '@/lib/validation';
 
 type DocumentMeta = { documentType: 'Address proof' | 'Medical certificate'; fileName: string; sizeBytes: number };
 
@@ -29,6 +30,8 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
   const [otp, setOtp] = useState('');
   const [declarationOne, setDeclarationOne] = useState(initial.application.declarationsAccepted);
   const [declarationTwo, setDeclarationTwo] = useState(initial.application.declarationsAccepted);
+  const [paymentMethod, setPaymentMethod] = useState<MockPaymentMethod>('mock-upi');
+  const [gatewayState, setGatewayState] = useState<MockGatewayState>('idle');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const form = useForm<ContactInput>({
@@ -41,7 +44,7 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
     const raw = sessionStorage.getItem(draftKey);
     if (!raw) return;
     try {
-      const draft = JSON.parse(raw) as Partial<ContactInput> & { step?: number; documents?: DocumentMeta[]; otp?: string; confirmed?: boolean; declarationOne?: boolean; declarationTwo?: boolean };
+      const draft = JSON.parse(raw) as Partial<ContactInput> & { step?: number; documents?: DocumentMeta[]; otp?: string; confirmed?: boolean; declarationOne?: boolean; declarationTwo?: boolean; paymentMethod?: MockPaymentMethod };
       if (draft.email) form.setValue('email', draft.email);
       if (draft.phone) form.setValue('phone', draft.phone);
       if (draft.address) form.setValue('address', draft.address);
@@ -50,6 +53,7 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
       if (typeof draft.confirmed === 'boolean') setConfirmed(draft.confirmed);
       if (typeof draft.declarationOne === 'boolean') setDeclarationOne(draft.declarationOne);
       if (typeof draft.declarationTwo === 'boolean') setDeclarationTwo(draft.declarationTwo);
+      if (draft.paymentMethod) setPaymentMethod(draft.paymentMethod);
       if (typeof draft.step === 'number') setStep(Math.max(0, Math.min(draft.step, initial.application.currentStep, 5)));
     } catch { sessionStorage.removeItem(draftKey); }
   }, [draftKey, form, initial.application.currentStep]);
@@ -58,11 +62,11 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
     // React Hook Form intentionally exposes an imperative subscription for draft persistence.
     // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = form.watch((values) => {
-      sessionStorage.setItem(draftKey, JSON.stringify({ ...values, step, documents, otp, confirmed, declarationOne, declarationTwo }));
+      sessionStorage.setItem(draftKey, JSON.stringify({ ...values, step, documents, otp, confirmed, declarationOne, declarationTwo, paymentMethod }));
     });
-    sessionStorage.setItem(draftKey, JSON.stringify({ ...form.getValues(), step, documents, otp, confirmed, declarationOne, declarationTwo }));
+    sessionStorage.setItem(draftKey, JSON.stringify({ ...form.getValues(), step, documents, otp, confirmed, declarationOne, declarationTwo, paymentMethod }));
     return () => subscription.unsubscribe();
-  }, [confirmed, declarationOne, declarationTwo, documents, draftKey, form, otp, step]);
+  }, [confirmed, declarationOne, declarationTwo, documents, draftKey, form, otp, paymentMethod, step]);
 
   const labels = [copy.step0, copy.step1, copy.step2, copy.step3, copy.step4, copy.step5];
   async function saveAndContinue() {
@@ -85,7 +89,8 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
       if (!declarationOne || !declarationTwo) return setError(copy.errorDeclarations);
       payload = { step: 4, data: { declarationsAccepted: true } };
     } else {
-      payload = { step: 5, data: {} };
+      payload = { step: 5, data: { paymentMethod } };
+      setGatewayState('processing');
     }
     setSaving(true);
     try {
@@ -93,12 +98,13 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
       if (!response.ok) throw new Error('save failed');
       if (step === 5) {
         sessionStorage.removeItem(draftKey);
-        router.push(`/${locale}/status/${initial.application.id}`);
+        setGatewayState('success');
+        window.setTimeout(() => router.push(`/${locale}/status/${initial.application.id}`), 650);
       } else {
         setStep((value) => Math.min(value + 1, 5));
         router.refresh();
       }
-    } catch { setError(copy.errorGeneric); } finally { setSaving(false); }
+    } catch { setGatewayState(step === 5 ? 'failure' : 'idle'); setError(copy.errorGeneric); } finally { setSaving(false); }
   }
 
   function addDocument(file: File | undefined) {
@@ -123,8 +129,8 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
           <div className="p-5 sm:p-7">{renderStep()}</div>
           {error && <p role="alert" className="mx-5 mb-2 rounded-2xl border border-destructive/30 bg-[#FFF2F0] p-4 text-sm font-medium text-destructive sm:mx-7">{error}</p>}
           <div className="flex flex-col-reverse gap-3 border-t bg-secondary/45 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
-            <Button type="button" variant="ghost" disabled={step === 0 || saving} onClick={() => setStep((value) => Math.max(0, value - 1))}><ArrowLeft data-icon="inline-start" />{copy.back}</Button>
-            <div className="flex items-center justify-end gap-4"><span aria-live="polite" className="hidden text-sm text-muted-foreground sm:inline">{saving ? copy.saving : copy.saved}</span><Button type="button" disabled={saving} onClick={saveAndContinue} size="lg">{saving ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : step === 5 ? <IndianRupee data-icon="inline-start" /> : <ArrowRight data-icon="inline-start" />}{step === 5 ? copy.submitPayment : copy.continue}</Button></div>
+            <Button type="button" variant="ghost" disabled={step === 0 || saving} onClick={() => { setStep((value) => Math.max(0, value - 1)); setGatewayState('idle'); setError(''); }}><ArrowLeft data-icon="inline-start" />{copy.back}</Button>
+            <div className="flex items-center justify-end gap-4"><span aria-live="polite" className="hidden text-sm text-muted-foreground sm:inline">{saving ? copy.saving : copy.saved}</span><Button type="button" disabled={saving || gatewayState === 'success'} onClick={saveAndContinue} size="lg">{saving ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : step === 5 ? <IndianRupee data-icon="inline-start" /> : <ArrowRight data-icon="inline-start" />}{saving && step === 5 ? (locale === 'hi' ? 'मॉक भुगतान प्रोसेस हो रहा है…' : 'Processing mock payment…') : step === 5 ? copy.submitPayment : copy.continue}</Button></div>
           </div>
         </section>
 
@@ -139,7 +145,7 @@ export function RenewalWizard({ initial, locale, copy }: { initial: ApplicationB
     if (step === 2) return <div className="flex flex-col gap-5"><Alert className="bg-secondary/65"><Upload /><AlertTitle>{copy.documentsTitle}</AlertTitle><AlertDescription>{copy.documentsBody}</AlertDescription></Alert><Field><FieldLabel htmlFor="address-proof">{copy.addressProof}</FieldLabel><Input id="address-proof" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => addDocument(event.target.files?.[0])} className="h-auto min-h-12 cursor-pointer bg-white file:mr-3 file:rounded-full file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-semibold file:text-foreground" /><FieldDescription>PDF, JPG or PNG · max 5 MB · metadata only</FieldDescription></Field>{documents.map((document) => <div key={document.documentType} className="flex items-center gap-4 rounded-2xl border bg-secondary/45 p-4"><FileCheck2 className="size-6 shrink-0 text-success" /><div className="min-w-0"><p className="truncate font-semibold">{document.fileName}</p><p className="text-sm text-muted-foreground">{(document.sizeBytes / 1024).toFixed(1)} KB · {copy.selectedFile}</p></div><Button type="button" variant="ghost" onClick={() => setDocuments([])} className="ml-auto text-destructive">{copy.remove}</Button></div>)}</div>;
     if (step === 3) return <div className="max-w-md"><Alert className="bg-[#FFF9ED] text-[#5E4200]"><LockKeyhole /><AlertTitle>{copy.demoCode}</AlertTitle><AlertDescription>{copy.otpBody}</AlertDescription></Alert><Field className="mt-6"><FieldLabel htmlFor="otp">{copy.otp}</FieldLabel><Input id="otp" value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" maxLength={6} className="h-14 text-center font-mono text-2xl tracking-[.35em]" /></Field></div>;
     if (step === 4) return <div className="flex flex-col gap-6"><ReviewRow label={copy.holder} value={initial.licence.holderName} /><ReviewRow label={copy.email} value={form.getValues('email')} /><ReviewRow label={copy.phone} value={form.getValues('phone')} /><ReviewRow label={copy.fullAddress} value={form.getValues('address')} /><ReviewRow label={copy.documentsTitle} value={documents.map((item) => item.fileName).join(', ')} /><ReviewRow label={copy.amount} value="₹450 (mock)" /><Separator /><Field orientation="horizontal" className="rounded-xl border p-4"><Checkbox id="declaration-one" checked={declarationOne} onCheckedChange={(value) => setDeclarationOne(value === true)} /><FieldLabel htmlFor="declaration-one">{copy.declaration1}</FieldLabel></Field><Field orientation="horizontal" className="rounded-xl border p-4"><Checkbox id="declaration-two" checked={declarationTwo} onCheckedChange={(value) => setDeclarationTwo(value === true)} /><FieldLabel htmlFor="declaration-two">{copy.declaration2}</FieldLabel></Field></div>;
-    return <div className="flex flex-col gap-6"><Alert className="bg-[#F1FAF5] text-[#1B5C3B]"><ShieldCheck /><AlertTitle>{copy.mockGateway}</AlertTitle><AlertDescription>{copy.paymentBody}</AlertDescription></Alert><dl className="border-y"><ReviewRow label={copy.amount} value="₹450.00" /><ReviewRow label={copy.paymentMethod} value={copy.mockGateway} /></dl><div><Button type="button" variant="outline" onClick={() => setError(locale === 'hi' ? 'मॉक भुगतान पूरा नहीं हुआ। कोई शुल्क नहीं लगा। फिर कोशिश करने के लिए नीचे वाला बटन दबाएँ।' : 'The mock payment did not complete. Nothing was charged. Use the button below to try again.')}>{locale === 'hi' ? 'भुगतान विफलता का डेमो देखें' : 'Preview payment failure recovery'}</Button></div><p className="text-sm text-muted-foreground">{copy.prototype}</p></div>;
+    return <MockPaymentGateway amountPaise={45000} applicationId={initial.application.id} locale={locale} value={paymentMethod} state={gatewayState} onValueChange={(value) => { setPaymentMethod(value); setGatewayState('idle'); setError(''); }} onPreviewFailure={() => { setGatewayState('failure'); setError(locale === 'hi' ? 'मॉक भुगतान पूरा नहीं हुआ। कोई शुल्क नहीं लगा और आवेदन सुरक्षित है। तरीका चुनकर फिर प्रयास करें।' : 'The mock payment did not complete. Nothing was charged and the application is safe. Choose a method and try again.'); }} />;
   }
 }
 

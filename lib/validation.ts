@@ -12,13 +12,15 @@ export const documentSchema = z.object({
   sizeBytes: z.number().int().positive().max(5_000_000),
 });
 
+export const mockPaymentMethodSchema = z.enum(['mock-upi', 'mock-card', 'mock-netbanking']);
+
 export const applicationUpdateSchema = z.discriminatedUnion('step', [
   z.object({ step: z.literal(0), data: z.object({ confirmed: z.literal(true) }) }),
   z.object({ step: z.literal(1), data: contactSchema }),
   z.object({ step: z.literal(2), data: z.object({ documents: z.array(documentSchema).min(1).max(2) }) }),
   z.object({ step: z.literal(3), data: z.object({ otp: z.literal('123456') }) }),
   z.object({ step: z.literal(4), data: z.object({ declarationsAccepted: z.literal(true) }) }),
-  z.object({ step: z.literal(5), data: z.object({ simulateFailure: z.boolean().optional() }) }),
+  z.object({ step: z.literal(5), data: z.object({ paymentMethod: mockPaymentMethodSchema }) }),
 ]);
 
 export const assistantSchema = z.object({
@@ -30,11 +32,21 @@ export const serviceApplicationCreateSchema = z.object({
   locale: z.enum(['en', 'hi']),
 });
 
+export const serviceApplicationDetailsSchema = z.object({
+  contactEmail: z.string().trim().email().max(120).refine((value) => value.toLowerCase().endsWith('@bwmi.test'), 'Use the fictional @bwmi.test address.'),
+  contactPhone: z.string().trim().regex(/^\+91 [6-9]\d{4} \d{5}$/, 'Use the displayed synthetic mobile format.'),
+  address: z.string().trim().min(12).max(240),
+  requestValue: z.string().trim().min(2).max(180),
+  requestReason: z.string().trim().min(2).max(100),
+  selection: z.enum(['standard', 'assisted']),
+});
+
 export const serviceApplicationUpdateSchema = z.discriminatedUnion('step', [
   z.object({ step: z.literal(0), data: z.object({ confirmed: z.literal(true) }) }),
-  z.object({ step: z.literal(1), data: z.object({ selection: z.enum(['standard', 'priority', 'assisted']) }) }),
+  z.object({ step: z.literal(1), data: serviceApplicationDetailsSchema }),
   z.object({ step: z.literal(2), data: z.object({ otp: z.literal('123456') }) }),
   z.object({ step: z.literal(3), data: z.object({ declarationsAccepted: z.literal(true) }) }),
+  z.object({ step: z.literal(4), data: z.object({ paymentMethod: mockPaymentMethodSchema }) }),
 ]);
 
 export const syntheticProfileSchema = z.object({
@@ -46,4 +58,7 @@ export const syntheticProfileSchema = z.object({
 
 export type ContactInput = z.infer<typeof contactSchema>;
 export type ApplicationUpdate = z.infer<typeof applicationUpdateSchema>;
+export type ServiceApplicationDetailsInput = z.infer<typeof serviceApplicationDetailsSchema>;
+export type ServiceApplicationUpdate = z.infer<typeof serviceApplicationUpdateSchema>;
+export type MockPaymentMethod = z.infer<typeof mockPaymentMethodSchema>;
 export type SyntheticProfileInput = z.infer<typeof syntheticProfileSchema>;

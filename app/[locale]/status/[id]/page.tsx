@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getApplicationBundle } from '@/lib/data';
 import { getCopy, isLocale, localPath } from '@/lib/i18n';
+import { paymentMethodLabel } from '@/lib/payment';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -51,6 +52,7 @@ export default async function StatusPage({ params }: { params: Promise<{ locale:
               <ReceiptDatum label={copy.transactionNumber} value={payment.transactionReference} />
               <ReceiptDatum label={copy.submittedOn} value={new Intl.DateTimeFormat(dateLocale, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(application.submittedAt))} />
               <ReceiptDatum label={copy.amount} value="₹450.00 (mock)" />
+              <ReceiptDatum label={copy.paymentMethod} value={paymentMethodLabel(payment.method, locale)} />
             </dl>
           </section>
 

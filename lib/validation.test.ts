@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applicationUpdateSchema, contactSchema, documentSchema, syntheticProfileSchema } from '@/lib/validation';
+import { applicationUpdateSchema, contactSchema, documentSchema, serviceApplicationUpdateSchema, syntheticProfileSchema } from '@/lib/validation';
 
 describe('renewal validation', () => {
   it('accepts synthetic contact details', () => {
@@ -17,5 +17,23 @@ describe('renewal validation', () => {
   it('keeps profile email inside the synthetic demo domain', () => {
     expect(syntheticProfileSchema.safeParse({ fullName: 'Aarav Sharma', email: 'citizen.demo@bwmi.test', syntheticPhone: '+91 98765 78120', preferredLocale: 'en' }).success).toBe(true);
     expect(syntheticProfileSchema.safeParse({ fullName: 'Aarav Sharma', email: 'person@example.com', syntheticPhone: '+91 98765 78120', preferredLocale: 'en' }).success).toBe(false);
+  });
+
+  it('requires complete fictional details before a service request can advance', () => {
+    const details = {
+      contactEmail: 'citizen.demo@bwmi.test',
+      contactPhone: '+91 98765 78120',
+      address: '24 Sample Marg, New Delhi 110001',
+      requestValue: '+91 91234 56789',
+      requestReason: 'Citizen record update',
+      selection: 'standard',
+    } as const;
+    expect(serviceApplicationUpdateSchema.safeParse({ step: 1, data: details }).success).toBe(true);
+    expect(serviceApplicationUpdateSchema.safeParse({ step: 1, data: { selection: 'standard' } }).success).toBe(false);
+  });
+
+  it('accepts only an explicitly mock payment method', () => {
+    expect(applicationUpdateSchema.safeParse({ step: 5, data: { paymentMethod: 'mock-card' } }).success).toBe(true);
+    expect(applicationUpdateSchema.safeParse({ step: 5, data: { paymentMethod: 'upi' } }).success).toBe(false);
   });
 });

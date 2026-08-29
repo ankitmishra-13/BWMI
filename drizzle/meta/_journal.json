@@ -15,6 +15,13 @@
       "when": 1787999164446,
       "tag": "0001_narrow_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788031887577,
+      "tag": "0002_strange_gateway",
+      "breakpoints": true
     }
   ]
 }

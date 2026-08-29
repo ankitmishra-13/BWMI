@@ -96,31 +96,49 @@ test('demo auth protects and completes a synthetic service transaction', async (
   await page.goto('/en/profile');
   await expect(page.getByRole('heading', { name: 'Your synthetic profile.' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-  if ((page.viewportSize()?.width ?? 1280) < 1024) {
-    const mobileNav = page.locator('details.mobile-nav');
-    await mobileNav.locator('summary').click();
-    await expect(mobileNav.getByRole('button', { name: 'Sign out' })).toBeVisible();
-    await mobileNav.locator('summary').click();
-    await expect(mobileNav).not.toHaveAttribute('open', '');
-  }
+  await page.getByRole('button', { name: 'Open profile navigation' }).click();
+  await expect(page.getByRole('menuitem', { name: 'My applications' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Profile' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'हिन्दी' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Sign out' })).toBeVisible();
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Save synthetic profile' }).click();
   await expect(page).toHaveURL(/\/en\/profile\?saved=1/);
   await expect(page.getByText('Synthetic profile updated.')).toBeVisible();
 
-  const created = await page.request.post('/api/service-applications', { data: { serviceSlug: 'echallan', locale: 'en' } });
+  const created = await page.request.post('/api/service-applications', { data: { serviceSlug: 'update-mobile-number', locale: 'en' } });
   expect(created.status()).toBe(201);
   const { id } = await created.json() as { id: string };
-  const steps = [
-    { step: 0, data: { confirmed: true } },
-    { step: 1, data: { selection: 'standard' } },
-    { step: 2, data: { otp: '123456' } },
-    { step: 3, data: { declarationsAccepted: true } },
-  ];
-  for (const payload of steps) {
-    const response = await page.request.patch(`/api/service-applications/${id}`, { data: payload });
-    expect(response.ok()).toBeTruthy();
-  }
-  await page.goto(`/en/services/echallan/receipt/${id}`);
+
+  await page.goto(`/en/services/update-mobile-number/apply/${id}`);
+  await expect(page.getByRole('heading', { name: 'Check record' })).toBeVisible();
+  await page.getByLabel(/every result are entirely synthetic/).check();
+  await page.getByRole('button', { name: 'Save and continue' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Application details' })).toBeVisible();
+  await page.getByLabel('New synthetic mobile number').fill('+91 93456 78901');
+  await page.getByRole('button', { name: 'Save and continue' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Demo verification' })).toBeVisible();
+  await page.getByLabel('Six-digit demo OTP').fill('123456');
+  await page.getByRole('button', { name: 'Save and continue' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Review changes' })).toBeVisible();
+  await expect(page.getByText('+91 98765 78120', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('+91 93456 78901', { exact: true })).toBeVisible();
+  await page.getByLabel(/reviewed the changes/).check();
+  await page.getByRole('button', { name: 'Continue to mock payment' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Mock payment' })).toBeVisible();
+  await expect(page.getByText('No card number, bank login, or UPI ID will ever be requested.')).toBeVisible();
+  await page.getByRole('radio', { name: /Mock card/ }).click();
+  await page.getByRole('button', { name: 'Preview failed-payment recovery' }).click();
+  await expect(page.getByText(/Nothing was charged and the application is safe/)).toBeVisible();
+  await page.getByRole('button', { name: 'Complete mock payment' }).click();
+
+  await expect(page).toHaveURL(new RegExp(`/en/services/update-mobile-number/receipt/${id}`), { timeout: 30_000 });
   await expect(page.getByRole('heading', { name: 'Your synthetic application is submitted.' })).toBeVisible();
-  await expect(page.getByText(/RAAHI-ECHA-/)).toBeVisible();
+  await expect(page.getByText(/MOCK-PAY-/)).toBeVisible();
+  await expect(page.getByText('Mock card', { exact: true })).toBeVisible();
+  await expect(page.getByText('+91 93456 78901', { exact: true })).toBeVisible();
 });

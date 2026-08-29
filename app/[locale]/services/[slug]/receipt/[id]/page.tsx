@@ -6,8 +6,9 @@ import { PrintButton } from '@/components/print-button';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { getServiceApplication } from '@/lib/data';
+import { getServiceApplication, getServicePayment } from '@/lib/data';
 import { isLocale, localPath } from '@/lib/i18n';
+import { paymentMethodLabel } from '@/lib/payment';
 import { getService, portalCopy, servicePath, t } from '@/lib/services';
 import { cn } from '@/lib/utils';
 
@@ -20,7 +21,7 @@ export default async function ServiceReceiptPage({ params }: { params: Promise<{
   const service = getService(slug);
   if (!service) notFound();
   const user = await requireChatGPTUser(localPath(locale, `/services/${slug}/receipt/${id}`));
-  const application = await getServiceApplication(user.userId, id);
+  const [application, payment] = await Promise.all([getServiceApplication(user.userId, id), getServicePayment(user.userId, id)]);
   if (!application || application.serviceSlug !== slug) notFound();
   if (application.status === 'Draft') redirect(localPath(locale, `/services/${slug}/apply/${id}`));
   if (!application.submittedAt || !application.reference) notFound();
@@ -56,9 +57,13 @@ export default async function ServiceReceiptPage({ params }: { params: Promise<{
             </div>
             <dl className="grid p-6 sm:grid-cols-2 sm:p-8">
               <ReceiptDatum label={hi ? 'आवेदन संदर्भ' : 'Application reference'} value={application.reference} />
+              <ReceiptDatum label={hi ? 'मॉक लेनदेन संदर्भ' : 'Mock transaction reference'} value={payment?.transactionReference ?? application.reference} />
               <ReceiptDatum label={hi ? 'नमूना शुल्क' : 'Sample fee'} value={`₹${(application.feePaise / 100).toLocaleString('en-IN')} (${hi ? 'मॉक' : 'mock'})`} />
+              <ReceiptDatum label={hi ? 'मॉक भुगतान तरीका' : 'Mock payment method'} value={paymentMethodLabel(payment?.method ?? 'mock-upi', locale)} />
               <ReceiptDatum label={hi ? 'जमा समय' : 'Submitted on'} value={new Intl.DateTimeFormat(dateLocale, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(application.submittedAt))} />
-              <ReceiptDatum label={hi ? 'सेवा विकल्प' : 'Service option'} value={application.selection || 'standard'} />
+              <ReceiptDatum label={hi ? 'अनुरोधित बदलाव' : 'Requested change'} value={application.requestValue} />
+              <ReceiptDatum label={hi ? 'अनुरोध का कारण' : 'Purpose of request'} value={application.requestReason} />
+              <ReceiptDatum label={hi ? 'सेवा विकल्प' : 'Service route'} value={application.selection === 'assisted' ? (hi ? 'सहायता केंद्र मार्गदर्शन' : 'Assisted-centre guidance') : (hi ? 'ऑनलाइन स्व-सेवा' : 'Online self-service')} />
             </dl>
           </section>
 

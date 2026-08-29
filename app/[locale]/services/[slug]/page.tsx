@@ -24,6 +24,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const related = servicesByCategory(service.category).filter((item) => item.slug !== service.slug).slice(0, 3);
   const fee = service.feePaise === null ? portal.free : new Intl.NumberFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(service.feePaise / 100) + ` (${locale === 'hi' ? 'मॉक' : 'mock'})`;
   const hi = locale === 'hi';
+  const journeySteps = serviceSteps(locale, service.mode, Boolean(service.renewalFlow));
 
   return (
     <div lang={locale} className="civic-paper">
@@ -39,7 +40,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
 
-        <section className="py-12 sm:py-16"><div className="shell"><JourneyPreview locale={locale} service={service} /><div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]"><div><h2 className="text-3xl sm:text-4xl">{portal.howItWorks}</h2><ol className="mt-7 border-y">{[portal.step1, portal.step2, portal.step3, portal.step4].map((step, index) => <li key={step} className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b py-6 last:border-0"><span className="text-sm font-semibold text-muted-foreground">0{index + 1}</span><div><h3 className="text-lg">{step}</h3><p className="mt-1 text-sm text-muted-foreground">{stepDescription(index, locale, service.mode)}</p></div><CheckCircle2 className={`size-5 ${index === 3 ? 'text-foreground' : 'text-muted-foreground'}`} /></li>)}</ol></div><aside><h2 className="text-2xl">{portal.requirements}</h2><ul className="mt-5 flex flex-col gap-4 text-sm leading-6 text-muted-foreground">{[portal.requirement1, portal.requirement2, portal.requirement3].map((item) => <li key={item} className="flex items-start gap-3"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-foreground" />{item}</li>)}</ul><Alert className="mt-7 bg-[#FFF9ED] text-[#5E4200]"><KeyRound /><AlertTitle>{hi ? 'डेमो OTP: 123456' : 'Demo OTP: 123456'}</AlertTitle><AlertDescription>{hi ? 'कोई SMS या वास्तविक पहचान जाँच नहीं।' : 'No SMS or real identity check.'}</AlertDescription></Alert></aside></div></div></section>
+        <section className="py-12 sm:py-16"><div className="shell"><JourneyPreview locale={locale} service={service} /><div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]"><div><h2 className="text-3xl sm:text-4xl">{portal.howItWorks}</h2><ol className="mt-7 border-y">{journeySteps.map(([step, description], index) => <li key={step} className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b py-6 last:border-0"><span className="text-sm font-semibold text-muted-foreground">0{index + 1}</span><div><h3 className="text-lg">{step}</h3><p className="mt-1 text-sm text-muted-foreground">{description}</p></div><CheckCircle2 className={`size-5 ${index === journeySteps.length - 1 ? 'text-foreground' : 'text-muted-foreground'}`} /></li>)}</ol></div><aside><h2 className="text-2xl">{portal.requirements}</h2><ul className="mt-5 flex flex-col gap-4 text-sm leading-6 text-muted-foreground">{[portal.requirement1, portal.requirement2, portal.requirement3].map((item) => <li key={item} className="flex items-start gap-3"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-foreground" />{item}</li>)}</ul><Alert className="mt-7 bg-[#FFF9ED] text-[#5E4200]"><KeyRound /><AlertTitle>{hi ? 'डेमो OTP: 123456' : 'Demo OTP: 123456'}</AlertTitle><AlertDescription>{hi ? 'कोई SMS या वास्तविक पहचान जाँच नहीं।' : 'No SMS or real identity check.'}</AlertDescription></Alert></aside></div></div></section>
 
         <section id="prototype-view" className="scroll-mt-20 border-y bg-white/72 py-12 sm:py-16">
           <div className="shell">
@@ -53,14 +54,16 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   );
 }
 
-function stepDescription(index: number, locale: 'en' | 'hi', mode: 'transaction' | 'information' | 'dashboard') {
-  const en = mode === 'transaction'
-    ? ['See requirements and sample fee before doing anything.', 'Choose from safe preset options using fictional records.', 'Use the visible code—no real OTP or identity data.', 'Submit a mock transaction and keep its synthetic reference.']
-    : ['Read the scope and source limitations.', 'Explore structured examples rather than live records.', 'See what a production service would verify.', 'Leave with clear next steps and no submitted data.'];
-  const hi = mode === 'transaction'
-    ? ['कुछ भी करने से पहले आवश्यकताएँ और नमूना शुल्क देखें।', 'काल्पनिक रिकॉर्ड के साथ सुरक्षित पहले से तय विकल्प चुनें।', 'दिखाई देने वाला कोड उपयोग करें—कोई वास्तविक OTP या पहचान डेटा नहीं।', 'मॉक लेनदेन जमा करें और काल्पनिक संदर्भ रखें।']
-    : ['दायरा और स्रोत सीमाएँ पढ़ें।', 'लाइव रिकॉर्ड के बजाय संरचित उदाहरण देखें।', 'देखें कि उत्पादन सेवा क्या सत्यापित करेगी।', 'बिना डेटा जमा किए स्पष्ट अगले कदम पाएँ।'];
-  return (locale === 'hi' ? hi : en)[index];
+function serviceSteps(locale: 'en' | 'hi', mode: 'transaction' | 'information' | 'dashboard', renewalFlow: boolean): Array<[string, string]> {
+  if (mode !== 'transaction') return locale === 'hi'
+    ? [['दायरा पढ़ें', 'दायरा और स्रोत सीमाएँ समझें।'], ['उदाहरण देखें', 'लाइव रिकॉर्ड के बजाय संरचित उदाहरण देखें।'], ['सीमाएँ जानें', 'देखें कि उत्पादन सेवा क्या सत्यापित करेगी।'], ['अगला कदम पाएँ', 'बिना डेटा जमा किए स्पष्ट अगला कदम पाएँ।']]
+    : [['Read the scope', 'Understand the scope and source limitations.'], ['Explore examples', 'Use structured examples rather than live records.'], ['Know the limits', 'See what a production service would verify.'], ['Leave informed', 'Get clear next steps without submitting data.']];
+  if (renewalFlow) return locale === 'hi'
+    ? [['पात्रता जाँचें', 'काल्पनिक नवीनीकरण पात्रता समझें।'], ['विवरण अपडेट करें', 'संपर्क और पता संपादित करें।'], ['दस्तावेज़ चुनें', 'केवल फ़ाइल मेटाडेटा सहेजें।'], ['डेमो सत्यापन', 'दिखाई देने वाला कोड 123456 उपयोग करें।'], ['समीक्षा करें', 'हर बदलाव और घोषणा जाँचें।'], ['मॉक भुगतान', 'वित्तीय विवरण के बिना रसीद बनाएँ।']]
+    : [['Check eligibility', 'Understand the synthetic renewal result.'], ['Update details', 'Edit contact and address information.'], ['Choose documents', 'Save file metadata only.'], ['Demo verification', 'Use the visible code 123456.'], ['Review', 'Check every change and declaration.'], ['Mock payment', 'Create a receipt without financial details.']];
+  return locale === 'hi'
+    ? [['रिकॉर्ड जाँचें', 'मौजूदा काल्पनिक रिकॉर्ड समझें।'], ['आवेदन भरें', 'अनुरोधित बदलाव और संपर्क विवरण दर्ज करें।'], ['डेमो सत्यापन', 'दिखाई देने वाला कोड 123456 उपयोग करें।'], ['बदलाव जाँचें', 'पुराने और नए विवरण की तुलना करें।'], ['मॉक भुगतान', 'तरीका चुनें और काल्पनिक रसीद बनाएँ।']]
+    : [['Check record', 'Understand the current synthetic record.'], ['Complete the form', 'Enter the requested change and contact details.'], ['Demo verification', 'Use the visible code 123456.'], ['Review changes', 'Compare the old and new values.'], ['Mock payment', 'Choose a method and create a synthetic receipt.']];
 }
 
 function SyntheticDashboard({ locale, title }: { locale: 'en' | 'hi'; title: string }) {
@@ -75,5 +78,5 @@ function InformationGuide({ locale, serviceTitle }: { locale: 'en' | 'hi'; servi
 }
 
 function TransactionPreview({ locale }: { locale: 'en' | 'hi' }) {
-  return <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="eyebrow">{locale === 'hi' ? 'सुरक्षित डेमो अनुबंध' : 'Safe demo contract'}</p><h2 className="mt-3 text-3xl sm:text-5xl">{locale === 'hi' ? 'एक कार्य, चार स्पष्ट चरण।' : 'One task, four clear steps.'}</h2></div><div className="grid gap-3 sm:grid-cols-2">{[{ icon: FileCheck2, en: 'Prefilled synthetic record', hi: 'पहले से भरा काल्पनिक रिकॉर्ड' }, { icon: KeyRound, en: 'Visible demo verification', hi: 'दिखाई देने वाला डेमो सत्यापन' }, { icon: IndianRupee, en: 'No financial inputs', hi: 'कोई वित्तीय इनपुट नहीं' }, { icon: Sparkles, en: 'Mock receipt and status', hi: 'मॉक रसीद और स्थिति' }].map(({ icon: Icon, en, hi }) => <div key={en} className="ios-panel flex items-center gap-4 p-5"><Icon className="size-6 shrink-0" /><p className="font-medium">{locale === 'hi' ? hi : en}</p></div>)}</div></div>;
+  return <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="eyebrow">{locale === 'hi' ? 'सुरक्षित डेमो अनुबंध' : 'Safe demo contract'}</p><h2 className="mt-3 text-3xl sm:text-5xl">{locale === 'hi' ? 'एक कार्य, पाँच स्पष्ट चरण।' : 'One task, five clear steps.'}</h2></div><div className="grid gap-3 sm:grid-cols-2">{[{ icon: FileCheck2, en: 'Editable synthetic form', hi: 'संपादन योग्य काल्पनिक फ़ॉर्म' }, { icon: KeyRound, en: 'Visible demo verification', hi: 'दिखाई देने वाला डेमो सत्यापन' }, { icon: IndianRupee, en: 'Complete mock gateway', hi: 'पूर्ण मॉक गेटवे' }, { icon: Sparkles, en: 'Mock receipt and status', hi: 'मॉक रसीद और स्थिति' }].map(({ icon: Icon, en, hi }) => <div key={en} className="ios-panel flex items-center gap-4 p-5"><Icon className="size-6 shrink-0" /><p className="font-medium">{locale === 'hi' ? hi : en}</p></div>)}</div></div>;
 }
