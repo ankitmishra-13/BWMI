@@ -44,15 +44,12 @@ export async function ensureSyntheticCitizen(user: ChatGPTUser, locale: Locale) 
     set: { email: syntheticEmail, fullName: syntheticName, preferredLocale: locale, updatedAt: timestamp },
   });
 
-  const [existing] = await db.select().from(driverLicences).where(eq(driverLicences.userId, user.userId)).limit(1);
-  if (!existing) {
-    await db.insert(driverLicences).values({
-      id: crypto.randomUUID(), userId: user.userId, maskedNumber: 'DL-••-2014-••7812',
-      holderName: syntheticName, dateOfBirth: '1992-08-14', validUntil: '2026-09-18',
-      issueState: 'Delhi', vehicleClasses: 'LMV, MCWG', address: '24 Sample Marg, New Delhi 110001',
-      eligible: true, createdAt: timestamp,
-    });
-  }
+  await db.insert(driverLicences).values({
+    id: crypto.randomUUID(), userId: user.userId, maskedNumber: 'DL-••-2014-••7812',
+    holderName: syntheticName, dateOfBirth: '1992-08-14', validUntil: '2026-09-18',
+    issueState: 'Delhi', vehicleClasses: 'LMV, MCWG', address: '24 Sample Marg, New Delhi 110001',
+    eligible: true, createdAt: timestamp,
+  }).onConflictDoNothing({ target: driverLicences.userId });
 }
 
 export async function getCitizenWorkspace(userId: string) {

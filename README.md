@@ -50,6 +50,12 @@ npm run test:e2e
 npm run build
 ```
 
+To run the same browser suite against a deployed environment:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://your-worker.workers.dev npm run test:e2e
+```
+
 The design authority is [`Design.md`](./Design.md).
 
 ## Cloudflare deployment
