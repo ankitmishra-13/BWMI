@@ -15,9 +15,9 @@ export function AccountShell({ locale, active, children }: { locale: Locale; act
     { id: 'services', label: copy.services, href: localPath(locale, '/services'), icon: Search },
   ] as const;
   return (
-    <div className="shell grid gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-12">
-      <aside>
-        <nav aria-label={copy.account} className="sticky top-28 flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
+    <div className="shell grid min-w-0 max-w-full gap-7 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-12">
+      <aside className="min-w-0 max-w-full">
+        <nav aria-label={copy.account} className="account-nav-scroll sticky top-28 flex w-full max-w-full gap-2 overflow-x-auto overscroll-x-contain pb-2 lg:flex-col lg:overflow-visible">
           <div className="mb-4 hidden px-3 lg:block"><p className="eyebrow">{copy.account}</p><p className="mt-1 text-xs text-muted-foreground">{copy.accountHint}</p></div>
           {links.map(({ id, label, href, icon: Icon }) => {
             const current = id === active;
@@ -25,7 +25,7 @@ export function AccountShell({ locale, active, children }: { locale: Locale; act
           })}
         </nav>
       </aside>
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0 max-w-full overflow-x-clip">{children}</div>
     </div>
   );
 }

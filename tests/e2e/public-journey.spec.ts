@@ -15,6 +15,31 @@ test('editorial service hub is clear and accessible', async ({ page }) => {
   expect(results.violations).toEqual([]);
 });
 
+test('responsive navigation exposes the complete shadcn service menu', async ({ page }) => {
+  await page.goto('/en');
+  const viewport = page.viewportSize();
+  if (viewport && viewport.width < 1024) {
+    const mobileNav = page.locator('details.mobile-nav');
+    const trigger = mobileNav.locator('summary');
+    const firstLine = trigger.locator('.menu-glyph > span').first();
+    const initialTransform = await firstLine.evaluate((element) => getComputedStyle(element).transform);
+    await trigger.click();
+    await expect(mobileNav).toHaveAttribute('open', '');
+    await page.waitForTimeout(240);
+    const openTransform = await firstLine.evaluate((element) => getComputedStyle(element).transform);
+    expect(openTransform).not.toBe(initialTransform);
+    const panel = mobileNav.locator('.mobile-menu-panel');
+    await expect(panel).toBeVisible();
+    expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe('rgb(255, 255, 255)');
+    await mobileNav.getByRole('button', { name: 'All services' }).click();
+  } else {
+    await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'All services' }).click();
+  }
+  await expect(page.getByRole('menuitem', { name: 'Renew a driving licence' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Rules and advisories' })).toBeAttached();
+  await expect(page.getByRole('menuitem', { name: 'View the complete service directory' })).toBeVisible();
+});
+
 test('language switching preserves the public page', async ({ page }) => {
   await page.goto('/en');
   await expect(page.getByRole('link', { name: /हिन्दी/ })).toHaveAttribute('href', '/hi');
@@ -53,8 +78,17 @@ test('demo auth protects and completes a synthetic service transaction', async (
   await page.goto('/en/applications');
   await expect(page.getByRole('heading', { name: 'Every application, in one place.' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Citizen account' }).getByRole('link', { name: 'My applications' })).toHaveAttribute('aria-current', 'page');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   await page.goto('/en/profile');
   await expect(page.getByRole('heading', { name: 'Your synthetic profile.' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  if ((page.viewportSize()?.width ?? 1280) < 1024) {
+    const mobileNav = page.locator('details.mobile-nav');
+    await mobileNav.locator('summary').click();
+    await expect(mobileNav.getByRole('button', { name: 'Sign out' })).toBeVisible();
+    await mobileNav.locator('summary').click();
+    await expect(mobileNav).not.toHaveAttribute('open', '');
+  }
   await page.getByRole('button', { name: 'Save synthetic profile' }).click();
   await expect(page).toHaveURL(/\/en\/profile\?saved=1/);
   await expect(page.getByText('Synthetic profile updated.')).toBeVisible();

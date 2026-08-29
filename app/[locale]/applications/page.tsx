@@ -38,10 +38,11 @@ export default async function ApplicationsPage({ params, searchParams }: { param
       <SiteHeader locale={locale} user={user} />
       <main id="main" className="py-9 sm:py-14">
         <AccountShell locale={locale} active="applications">
+          <div className="content-enter min-w-0 max-w-full">
           <p className="eyebrow">{copy.applicationsEyebrow}</p>
-          <div className="mt-3 flex flex-col gap-5 border-b pb-8 lg:flex-row lg:items-end lg:justify-between"><div><h1 className="max-w-4xl text-4xl leading-[1.02] tracking-[-.035em] sm:text-6xl">{copy.applicationsTitle}</h1><p className="mt-4 max-w-2xl text-muted-foreground">{copy.applicationsBody}</p></div><Button asChild size="lg"><Link href={localPath(locale, '/services')}><Plus data-icon="inline-start" />{copy.startService}</Link></Button></div>
+          <div className="mt-3 flex min-w-0 flex-col gap-5 border-b pb-8 lg:flex-row lg:items-end lg:justify-between"><div className="min-w-0"><h1 className="max-w-4xl break-words text-[clamp(2.7rem,11vw,3.75rem)] leading-[1.02] tracking-[-.035em]">{copy.applicationsTitle}</h1><p className="mt-4 max-w-2xl break-words text-muted-foreground">{copy.applicationsBody}</p></div><Button asChild size="lg" className="w-full lg:w-auto"><Link href={localPath(locale, '/services')}><Plus data-icon="inline-start" />{copy.startService}</Link></Button></div>
 
-          <div className="mt-7 flex gap-2 overflow-x-auto pb-2" aria-label={locale === 'hi' ? 'आवेदन फ़िल्टर' : 'Application filters'}>
+          <div className="account-nav-scroll mt-7 flex w-full max-w-full gap-2 overflow-x-auto overscroll-x-contain pb-2" aria-label={locale === 'hi' ? 'आवेदन फ़िल्टर' : 'Application filters'}>
             <FilterLink locale={locale} current={filter} value="all" label={`${copy.all} · ${allItems.length}`} />
             <FilterLink locale={locale} current={filter} value="draft" label={`${copy.drafts} · ${draftCount}`} />
             <FilterLink locale={locale} current={filter} value="submitted" label={`${copy.submitted} · ${submittedCount}`} />
@@ -50,7 +51,7 @@ export default async function ApplicationsPage({ params, searchParams }: { param
           {visible.length === 0 ? (
             <section className="mt-7 border-y py-14 text-center"><span className="mx-auto grid size-12 place-items-center rounded-full bg-secondary"><FileText className="size-5" /></span><h2 className="mt-5 text-2xl">{copy.noApplications}</h2><Button asChild variant="outline" className="mt-6"><Link href={localPath(locale, '/services')}>{copy.services}<ArrowRight data-icon="inline-end" /></Link></Button></section>
           ) : (
-            <section aria-label={copy.applications} className="ios-panel mt-7 overflow-hidden px-5 sm:px-7">
+            <section aria-label={copy.applications} className="ios-panel mt-7 max-w-full overflow-hidden px-4 sm:px-7">
               {visible.map((item) => {
                 const submitted = item.status !== 'Draft';
                 const service = item.kind === 'service' ? getService(item.application.serviceSlug) : null;
@@ -61,16 +62,17 @@ export default async function ApplicationsPage({ params, searchParams }: { param
                   : (submitted ? localPath(locale, `/services/${service!.slug}/receipt/${item.application.id}`) : localPath(locale, `/services/${service!.slug}/apply/${item.application.id}`));
                 const stepTotal = item.kind === 'renewal' ? 6 : 4;
                 return (
-                  <article key={`${item.kind}-${item.application.id}`} className="grid gap-5 border-b py-6 last:border-0 md:grid-cols-[1fr_auto] md:items-center">
-                    <div className="flex items-start gap-4"><span className={cn('grid size-11 shrink-0 place-items-center rounded-full', submitted ? 'bg-[#EAF7EF] text-success' : 'bg-secondary')} aria-hidden="true">{submitted ? <CheckCircle2 className="size-5" /> : <Clock3 className="size-5" />}</span><div><div className="flex flex-wrap items-center gap-2"><h2 className="text-xl">{title}</h2><Badge variant="outline" className={submitted ? 'bg-[#EAF7EF] text-success' : 'bg-white'}>{submitted ? copy.submitted : copy.drafts}</Badge></div><p className="mt-2 text-sm text-muted-foreground">{submitted ? (locale === 'hi' ? 'मॉक आवेदन जमा हुआ और रसीद तैयार है।' : 'Mock application submitted and receipt ready.') : (locale === 'hi' ? `चरण ${item.application.currentStep + 1}, कुल ${stepTotal}` : `Step ${item.application.currentStep + 1} of ${stepTotal}`)}</p><p className="mt-2 font-mono text-xs text-muted-foreground">{item.application.id.slice(0, 8).toUpperCase()}</p></div></div>
-                    <Button asChild variant="outline" className="justify-self-start md:justify-self-end"><Link href={href}>{submitted ? copy.view : copy.resume}<ArrowRight data-icon="inline-end" /></Link></Button>
+                  <article key={`${item.kind}-${item.application.id}`} className="grid min-w-0 gap-5 border-b py-6 last:border-0 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                    <div className="flex min-w-0 items-start gap-3 sm:gap-4"><span className={cn('grid size-11 shrink-0 place-items-center rounded-full', submitted ? 'bg-[#EAF7EF] text-success' : 'bg-secondary')} aria-hidden="true">{submitted ? <CheckCircle2 className="size-5" /> : <Clock3 className="size-5" />}</span><div className="min-w-0"><div className="flex min-w-0 flex-wrap items-center gap-2"><h2 className="min-w-0 break-words text-xl">{title}</h2><Badge variant="outline" className={cn('shrink-0', submitted ? 'bg-[#EAF7EF] text-success' : 'bg-white')}>{submitted ? copy.submitted : copy.drafts}</Badge></div><p className="mt-2 break-words text-sm text-muted-foreground">{submitted ? (locale === 'hi' ? 'मॉक आवेदन जमा हुआ और रसीद तैयार है।' : 'Mock application submitted and receipt ready.') : (locale === 'hi' ? `चरण ${item.application.currentStep + 1}, कुल ${stepTotal}` : `Step ${item.application.currentStep + 1} of ${stepTotal}`)}</p><p className="mt-2 break-all font-mono text-xs text-muted-foreground">{item.application.id.slice(0, 8).toUpperCase()}</p></div></div>
+                    <Button asChild variant="outline" className="w-full justify-center md:w-auto md:justify-self-end"><Link href={href}>{submitted ? copy.view : copy.resume}<ArrowRight data-icon="inline-end" /></Link></Button>
                   </article>
                 );
               })}
             </section>
           )}
 
-          <aside className="mt-8 grid gap-5 border-t pt-8 sm:grid-cols-2"><div className="flex items-start gap-4"><span className="grid size-11 place-items-center rounded-full bg-secondary"><Route className="size-5" /></span><div><h2 className="text-lg">{locale === 'hi' ? 'स्थिति के साथ अगला कदम' : 'Status with a next step'}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{locale === 'hi' ? 'हर आवेदन बताता है कि क्या पूरा है और आगे क्या करना है।' : 'Every application explains what is complete and what to do next.'}</p></div></div><div className="flex items-start gap-4"><span className="grid size-11 place-items-center rounded-full bg-secondary"><FileText className="size-5" /></span><div><h2 className="text-lg">{locale === 'hi' ? 'ड्राफ्ट सुरक्षित रहते हैं' : 'Drafts stay safe'}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{locale === 'hi' ? 'पृष्ठ छोड़ें और अपने आखिरी सहेजे चरण से जारी रखें।' : 'Leave the page and continue from your last saved step.'}</p></div></div></aside>
+          <aside className="mt-8 grid gap-5 border-t pt-8 sm:grid-cols-2"><div className="flex items-start gap-4"><span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary"><Route className="size-5" /></span><div className="min-w-0"><h2 className="text-lg">{locale === 'hi' ? 'स्थिति के साथ अगला कदम' : 'Status with a next step'}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{locale === 'hi' ? 'हर आवेदन बताता है कि क्या पूरा है और आगे क्या करना है।' : 'Every application explains what is complete and what to do next.'}</p></div></div><div className="flex items-start gap-4"><span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary"><FileText className="size-5" /></span><div className="min-w-0"><h2 className="text-lg">{locale === 'hi' ? 'ड्राफ्ट सुरक्षित रहते हैं' : 'Drafts stay safe'}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{locale === 'hi' ? 'पृष्ठ छोड़ें और अपने आखिरी सहेजे चरण से जारी रखें।' : 'Leave the page and continue from your last saved step.'}</p></div></div></aside>
+          </div>
         </AccountShell>
       </main>
     </div>

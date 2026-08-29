@@ -68,7 +68,7 @@ export default async function LoginPage({ params, searchParams }: { params: Prom
 
             <Alert className="mt-6 bg-secondary/70"><ShieldCheck /><AlertTitle>{hi ? 'केवल काल्पनिक डेटा' : 'Synthetic data only'}</AlertTitle><AlertDescription>{hi ? 'वास्तविक ID, संपर्क, OTP या भुगतान विवरण न डालें।' : 'Never enter a real ID, contact, OTP, or payment detail.'}</AlertDescription></Alert>
 
-            <Button asChild variant="ghost" className="mt-4 px-0"><Link href={localPath(locale)}><ArrowLeft data-icon="inline-start" />{portal.home}</Link></Button>
+            <Button asChild variant="outline" className="mt-5 px-5"><Link href={localPath(locale)}><ArrowLeft data-icon="inline-start" />{portal.home}</Link></Button>
           </section>
         </div>
       </main>

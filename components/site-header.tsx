@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { ArrowRight, CircleUserRound, FileText, Menu, Search, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowRight, CircleUserRound, FileText, LogOut, Search, ShieldCheck, UserRound } from 'lucide-react';
 import { accountCopy } from '@/lib/account-copy';
 import { chatGPTSignOutPath, demoSignInPath, type ChatGPTUser } from '@/app/chatgpt-auth';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { ServiceDropdown } from '@/components/service-dropdown';
 import { Button } from '@/components/ui/button';
 import { getCopy, localPath, type Locale } from '@/lib/i18n';
 import { categoryCopy, portalCopy, t } from '@/lib/services';
@@ -32,7 +33,7 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
 
           <nav aria-label="Primary" className="ml-6 hidden h-full shrink-0 items-center gap-1 lg:flex">
             <Link href={localPath(locale)} className="flex h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">{portal.home}</Link>
-            <Link href={localPath(locale, '/services')} className="flex h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">{portal.allServices}</Link>
+            <ServiceDropdown locale={locale} />
             {primaryCategories.map((category) => (
               <Link key={category} href={localPath(locale, `/services?category=${category}`)} className="flex h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                 {t(categoryCopy[category].short, locale)}
@@ -53,9 +54,9 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
 
             <details className="mobile-nav relative lg:hidden">
               <summary className="pressable flex size-11 cursor-pointer list-none items-center justify-center rounded-full border bg-white/90 [&::-webkit-details-marker]:hidden" aria-label={portal.menu}>
-                <Menu aria-hidden="true" />
+                <span className="menu-glyph" aria-hidden="true"><span /><span /><span /></span>
               </summary>
-              <div className="ios-glass absolute right-0 top-14 w-[min(92vw,370px)] rounded-[1.75rem] border border-foreground/10 p-4 shadow-[0_30px_80px_rgba(10,10,10,.15)]">
+              <div className="mobile-menu-panel absolute right-0 top-14 max-h-[calc(100svh-7.5rem)] w-[min(92vw,370px)] overflow-y-auto overscroll-contain rounded-[1.75rem] border border-foreground/10 p-4 shadow-[0_30px_80px_rgba(16,42,67,.18)]">
                 <form action={localPath(locale, '/services')} className="mb-4" role="search" aria-label={locale === 'hi' ? 'मोबाइल सेवा खोज' : 'Mobile service search'}>
                   <label htmlFor="mobile-search" className="px-1 text-xs font-semibold text-muted-foreground">{portal.search}</label>
                   <div className="mt-2 flex items-center rounded-2xl border bg-white px-3 focus-within:ring-3 focus-within:ring-ring/25">
@@ -64,9 +65,9 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
                     <button type="submit" className="min-h-11 px-2 text-sm font-semibold">{portal.searchAction}</button>
                   </div>
                 </form>
-                <nav aria-label="Mobile primary" className="flex max-h-[65vh] flex-col overflow-y-auto border-y">
+                <nav aria-label="Mobile primary" className="flex flex-col border-y">
                   <Link href={localPath(locale)} className="flex min-h-12 items-center justify-between border-b py-2 font-medium">{portal.home}<ArrowRight className="size-4 text-muted-foreground" /></Link>
-                  <Link href={localPath(locale, '/services')} className="flex min-h-12 items-center justify-between border-b py-2 font-medium">{portal.allServices}<ArrowRight className="size-4 text-muted-foreground" /></Link>
+                  <ServiceDropdown locale={locale} mobile />
                   {primaryCategories.map((category) => (
                     <Link key={category} href={localPath(locale, `/services?category=${category}`)} className="flex min-h-12 items-center justify-between border-b py-2 font-medium last:border-0">
                       {t(categoryCopy[category].title, locale)}<ArrowRight className="size-4 text-muted-foreground" />
@@ -74,7 +75,13 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
                   ))}
                 </nav>
                 {user ? (
-                  <div className="mt-4 grid grid-cols-2 gap-2"><Button asChild variant="secondary"><Link href={localPath(locale, '/applications')}><FileText data-icon="inline-start" />{accountCopy[locale].applications}</Link></Button><Button asChild variant="outline"><Link href={localPath(locale, '/profile')}><UserRound data-icon="inline-start" />{accountCopy[locale].profile}</Link></Button></div>
+                  <div className="mt-4 grid gap-2">
+                    <div className="grid gap-2 min-[360px]:grid-cols-2">
+                      <Button asChild variant="secondary" className="min-w-0"><Link href={localPath(locale, '/applications')}><FileText data-icon="inline-start" />{accountCopy[locale].applications}</Link></Button>
+                      <Button asChild variant="outline" className="min-w-0"><Link href={localPath(locale, '/profile')}><UserRound data-icon="inline-start" />{accountCopy[locale].profile}</Link></Button>
+                    </div>
+                    <MobileSignOut locale={locale} user={user} />
+                  </div>
                 ) : (
                   <Button asChild className="mt-4 w-full"><Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link></Button>
                 )}
@@ -84,6 +91,18 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
         </div>
       </header>
     </>
+  );
+}
+
+function MobileSignOut({ locale, user }: { locale: Locale; user: ChatGPTUser }) {
+  const portal = portalCopy[locale];
+  return user.authSource === 'demo' ? (
+    <form action="/api/demo-auth/logout" method="post" className="w-full">
+      <input type="hidden" name="returnTo" value={localPath(locale)} />
+      <Button type="submit" variant="outline" className="w-full"><LogOut data-icon="inline-start" />{portal.signOut}</Button>
+    </form>
+  ) : (
+    <Button asChild variant="outline" className="w-full"><a href={chatGPTSignOutPath(localPath(locale))}><LogOut data-icon="inline-start" />{portal.signOut}</a></Button>
   );
 }
 

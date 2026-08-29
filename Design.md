@@ -76,7 +76,7 @@ Below the fold, show popular citizen tasks, the full grouped service directory, 
 ### Portal navigation
 
 - The compact header always exposes Home, Services, Driving licence, Vehicle, Safety & compliance, Guides, language, and account state.
-- Desktop uses restrained text links plus keyboard-operable disclosure menus; mobile uses one rounded, translucent navigation panel with the same destinations.
+- Desktop uses restrained text links plus a keyboard-operable shadcn service dropdown; mobile uses one rounded, opaque navigation panel with the same destinations and a scrollable full-service menu.
 - Search is a first-class labelled control, never an icon-only affordance.
 - The authenticated account area shows active and past synthetic applications across service types; it is not an admin dashboard.
 
@@ -166,3 +166,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen po
 - 2026-08-29: Production hosting changed from OpenAI Sites to Cloudflare Workers because Sites access was unavailable in the active Enterprise workspace. D1 and the signed synthetic demo session remain unchanged.
 - 2026-08-29: User approved a complete frontend redesign based on the supplied `editorial-landing-page` folder. The system now uses Fraunces/Geist for English, supported Devanagari companions for Hindi, near-monochrome editorial colour, iOS-like rounded panels and motion, and an original security-paper route texture.
 - 2026-08-29: Added a genuinely sticky page/account rail, shared editorial Raahi footer, dedicated My applications and editable synthetic Profile pages, and the Journey Preview feature that reveals time, fee, requirements, resumability, and recovery before a citizen starts.
+- 2026-08-29: Refined the mobile account experience with overflow-safe layouts, an opaque navigation surface, animated menu state, visible sign-out, subtle civic-blue/mint highlights, and a shadcn service dropdown exposing the complete bilingual catalogue on desktop and mobile.
