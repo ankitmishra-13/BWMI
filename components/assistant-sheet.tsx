@@ -36,17 +36,17 @@ export function AssistantSheet({ applicationId, step, locale, copy }: { applicat
 
   return (
     <Sheet>
-      <SheetTrigger asChild><Button type="button" variant="outline" className="h-11 border-[#9FB0C0] bg-white px-4"><Bot />{copy.explain}</Button></SheetTrigger>
+      <SheetTrigger asChild><Button type="button" variant="outline"><Bot data-icon="inline-start" />{copy.explain}</Button></SheetTrigger>
       <SheetContent className="w-[min(92vw,440px)] overflow-y-auto sm:max-w-md">
         <SheetHeader className="border-b p-6 pr-14"><SheetTitle className="text-2xl font-semibold">{copy.assistantTitle}</SheetTitle><SheetDescription>{copy.assistantLimits}</SheetDescription></SheetHeader>
         <div className="flex flex-col gap-5 p-6">
-          <Alert className="border-[#E3C18D] bg-[#FFF9ED] text-[#5E4200]"><ShieldAlert /><AlertTitle>{copy.prototype}</AlertTitle><AlertDescription>{copy.assistantPrivacy}</AlertDescription></Alert>
+          <Alert className="bg-[#FFF9ED] text-[#5E4200]"><ShieldAlert /><AlertTitle>{copy.prototype}</AlertTitle><AlertDescription>{copy.assistantPrivacy}</AlertDescription></Alert>
           <form onSubmit={ask} className="flex flex-col gap-4">
             <Field><FieldLabel htmlFor="assistant-question">{copy.assistantQuestion}</FieldLabel><Textarea id="assistant-question" value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={300} placeholder={copy.assistantPlaceholder} className="min-h-28 resize-y bg-white" /><FieldDescription>{question.length}/300</FieldDescription></Field>
-            <Button type="submit" disabled={loading || question.trim().length < 3} className="h-11 bg-[#0F766E] hover:bg-[#0B5F59]">{loading ? <LoaderCircle className="animate-spin" /> : <Send />}{copy.assistantSend}</Button>
+            <Button type="submit" disabled={loading || question.trim().length < 3}>{loading ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <Send data-icon="inline-start" />}{copy.assistantSend}</Button>
           </form>
-          {error && <p role="alert" className="rounded-xl border border-[#E7AEA8] bg-[#FFF2F0] p-4 text-sm text-[#B42318]">{error}</p>}
-          {answer && <div aria-live="polite" className="border-t pt-5"><div className="flex items-center gap-2 font-semibold"><Bot className="size-5 text-[#0F766E]" />{copy.assistantTitle}</div><p className="mt-3 leading-7 text-[#40556A]">{answer}</p>{fallback && <p className="mt-3 text-xs font-medium text-[#8A5A00]">{copy.assistantFallback}</p>}{suggestions.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{suggestions.map((item) => <button key={item} type="button" onClick={() => setQuestion(item)} className="min-h-11 rounded-lg border bg-white px-3 py-2 text-left text-sm text-[#0F766E] hover:bg-[#F1F7F7]">{item}</button>)}</div>}</div>}
+          {error && <p role="alert" className="rounded-2xl border border-destructive/30 bg-[#FFF2F0] p-4 text-sm text-destructive">{error}</p>}
+          {answer && <div aria-live="polite" className="border-t pt-5"><div className="flex items-center gap-2 font-semibold"><Bot className="size-5" />{copy.assistantTitle}</div><p className="mt-3 leading-7 text-muted-foreground">{answer}</p>{fallback && <p className="mt-3 text-xs font-medium text-warning">{copy.assistantFallback}</p>}{suggestions.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{suggestions.map((item) => <button key={item} type="button" onClick={() => setQuestion(item)} className="pressable min-h-11 rounded-full border bg-white px-4 py-2 text-left text-sm font-medium hover:bg-secondary">{item}</button>)}</div>}</div>}
         </div>
       </SheetContent>
     </Sheet>

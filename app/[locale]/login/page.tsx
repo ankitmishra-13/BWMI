@@ -24,27 +24,27 @@ export default async function LoginPage({ params, searchParams }: { params: Prom
   const hi = locale === 'hi';
 
   return (
-    <div lang={locale}>
+    <div lang={locale} className="civic-paper">
       <SiteHeader locale={locale} user={user} />
       <main id="main" className="py-10 sm:py-16">
         <div className="shell grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,.85fr)_minmax(420px,.65fr)] lg:items-start">
           <section className="max-w-xl pt-3">
             <p className="eyebrow">{hi ? 'सुरक्षित जज प्रवेश' : 'Safe judge access'}</p>
-            <h1 className="mt-3 text-4xl font-semibold leading-[1.02] sm:text-6xl">{hi ? 'काल्पनिक नागरिक कार्यक्षेत्र खोलें।' : 'Enter the synthetic citizen workspace.'}</h1>
-            <p className="mt-6 text-lg leading-8 text-[#52667A]">{hi ? 'यह साझा डेमो खाता केवल काल्पनिक लाइसेंस, वाहन, दस्तावेज़ और आवेदन खोलता है। किसी वास्तविक सरकारी खाते की जरूरत नहीं है।' : 'This shared demo account opens only fictional licences, vehicles, documents, and applications. No real government account is needed.'}</p>
+            <h1 className="mt-4 text-5xl leading-[.98] tracking-[-.04em] sm:text-7xl">{hi ? 'काल्पनिक नागरिक कार्यक्षेत्र खोलें।' : 'Enter the synthetic citizen workspace.'}</h1>
+            <p className="mt-6 text-lg leading-8 text-muted-foreground">{hi ? 'यह साझा डेमो खाता केवल काल्पनिक लाइसेंस, वाहन, दस्तावेज़ और आवेदन खोलता है। किसी वास्तविक सरकारी खाते की जरूरत नहीं है।' : 'This shared demo account opens only fictional licences, vehicles, documents, and applications. No real government account is needed.'}</p>
             <ol className="mt-9 border-y">
               {[
                 hi ? 'डेमो क्रेडेंशियल से साइन इन करें' : 'Sign in with the public demo credentials',
                 hi ? 'कोई भी सेवा चुनें' : 'Choose any service',
                 hi ? 'मॉक रसीद और स्थिति तक जाएँ' : 'Reach a mock receipt and status',
-              ].map((item, index) => <li key={item} className="grid grid-cols-[44px_1fr] gap-4 border-b py-5 last:border-0"><span className="font-heading text-2xl font-semibold text-[#C76A15]">0{index + 1}</span><p className="font-semibold">{item}</p></li>)}
+              ].map((item, index) => <li key={item} className="grid grid-cols-[44px_1fr] gap-4 border-b py-5 last:border-0"><span className="text-sm font-semibold text-muted-foreground">0{index + 1}</span><p className="font-medium">{item}</p></li>)}
             </ol>
           </section>
 
-          <section aria-labelledby="login-title" className="rounded-2xl border bg-white p-6 shadow-[0_22px_60px_rgba(16,42,67,.08)] sm:p-8">
+          <section aria-labelledby="login-title" className="ios-panel p-6 sm:p-8">
             <div className="flex items-start gap-4 border-b pb-6">
-              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#E8F3F2] text-[#0F766E]"><KeyRound aria-hidden="true" /></span>
-              <div><h2 id="login-title" className="text-2xl font-semibold">{hi ? 'डेमो साइन इन' : 'Demo sign in'}</h2><p className="mt-1 text-sm text-[#52667A]">{portal.prototype}</p></div>
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-secondary"><KeyRound aria-hidden="true" /></span>
+              <div><h2 id="login-title" className="text-2xl">{hi ? 'डेमो साइन इन' : 'Demo sign in'}</h2><p className="mt-1 text-sm text-muted-foreground">{portal.prototype}</p></div>
             </div>
 
             {query.error && <Alert variant="destructive" className="mt-6"><AlertTitle>{hi ? 'क्रेडेंशियल मेल नहीं खाते' : 'Credentials did not match'}</AlertTitle><AlertDescription>{hi ? 'नीचे दिखाए गए सार्वजनिक डेमो क्रेडेंशियल का उपयोग करें।' : 'Use the public demo credentials shown below.'}</AlertDescription></Alert>}
@@ -63,12 +63,12 @@ export default async function LoginPage({ params, searchParams }: { params: Prom
                   <FieldDescription>{hi ? 'यह वास्तविक पासवर्ड नहीं है और इसे दोबारा उपयोग न करें।' : 'This is not a real password and should not be reused.'}</FieldDescription>
                 </Field>
               </FieldGroup>
-              <Button type="submit" className="mt-7 h-12 w-full bg-[#0F766E] text-base hover:bg-[#0B5F59]">{hi ? 'डेमो कार्यक्षेत्र खोलें' : 'Open demo workspace'}<ArrowRight /></Button>
+              <Button type="submit" size="lg" className="mt-7 w-full">{hi ? 'डेमो कार्यक्षेत्र खोलें' : 'Open demo workspace'}<ArrowRight data-icon="inline-end" /></Button>
             </form>
 
-            <Alert className="mt-6 border-[#A9D2CD] bg-[#F1FAF8]"><ShieldCheck /><AlertTitle>{hi ? 'केवल काल्पनिक डेटा' : 'Synthetic data only'}</AlertTitle><AlertDescription>{hi ? 'वास्तविक ID, संपर्क, OTP या भुगतान विवरण न डालें।' : 'Never enter a real ID, contact, OTP, or payment detail.'}</AlertDescription></Alert>
+            <Alert className="mt-6 bg-secondary/70"><ShieldCheck /><AlertTitle>{hi ? 'केवल काल्पनिक डेटा' : 'Synthetic data only'}</AlertTitle><AlertDescription>{hi ? 'वास्तविक ID, संपर्क, OTP या भुगतान विवरण न डालें।' : 'Never enter a real ID, contact, OTP, or payment detail.'}</AlertDescription></Alert>
 
-            <Button asChild variant="ghost" className="mt-4 h-11 px-0"><Link href={localPath(locale)}><ArrowLeft />{portal.home}</Link></Button>
+            <Button asChild variant="ghost" className="mt-4 px-0"><Link href={localPath(locale)}><ArrowLeft data-icon="inline-start" />{portal.home}</Link></Button>
           </section>
         </div>
       </main>

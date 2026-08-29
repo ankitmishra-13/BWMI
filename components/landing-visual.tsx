@@ -1,34 +1,50 @@
-import { Check, FileCheck2, IndianRupee, ShieldCheck } from 'lucide-react';
+import { Check, FileCheck2, Route, ShieldCheck } from 'lucide-react';
 import type { Copy } from '@/lib/i18n';
 
 export function LandingVisual({ copy }: { copy: Copy }) {
   const steps = [copy.visualStep1, copy.visualStep2, copy.visualStep3, copy.visualStep4];
+
   return (
-    <div className="relative mx-auto w-full max-w-xl lg:mr-0" aria-label={copy.visualTitle}>
-      <div className="absolute -left-4 top-14 h-36 w-1 rounded-full bg-[#C76A15] sm:-left-6" />
-      <div className="overflow-hidden rounded-2xl border border-[#AFC0D0] bg-white shadow-[0_22px_60px_rgba(16,42,67,0.10)]">
-        <div className="flex items-start justify-between gap-4 border-b bg-[#F8FAFC] p-5 sm:p-7">
-          <div><p className="eyebrow">{copy.visualKicker}</p><h2 className="mt-1 text-2xl font-semibold text-[#102A43]">{copy.visualTitle}</h2></div>
-          <div className="grid size-12 shrink-0 place-items-center rounded-full bg-[#DCEFED] text-[#0F766E]"><FileCheck2 aria-hidden="true" /></div>
+    <figure className="reveal reveal-delay-2 mx-auto w-full max-w-[390px] lg:mr-0" aria-label={copy.visualTitle}>
+      <div className="route-texture relative aspect-square overflow-hidden rounded-[2rem] border border-white/10 text-white shadow-[0_34px_90px_rgba(10,10,10,.2)]">
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between p-6">
+          <span className="text-[11px] font-semibold uppercase tracking-[.16em] text-white/55">{copy.visualKicker}</span>
+          <span className="grid size-10 place-items-center rounded-full border border-white/15 bg-white/10 backdrop-blur-md"><Route className="size-4" aria-hidden="true" /></span>
         </div>
-        <div className="p-5 sm:p-7">
-          <ol className="grid grid-cols-4 gap-2" aria-label={copy.visualTitle}>
-            {steps.map((step, index) => (
-              <li key={step} className="relative text-center">
-                {index < steps.length - 1 && <span aria-hidden="true" className="absolute left-1/2 top-4 h-0.5 w-full bg-[#B9D8D5]" />}
-                <span className="relative mx-auto grid size-8 place-items-center rounded-full bg-[#0F766E] text-white"><Check className="size-4" aria-hidden="true" /></span>
-                <span className="mt-2 block text-xs font-semibold text-[#52667A] sm:text-sm">{step}</span>
+
+        <svg className="absolute inset-0 size-full" viewBox="0 0 390 390" fill="none" aria-hidden="true">
+          <path d="M-26 302C43 292 55 229 105 213C159 196 174 241 223 221C284 197 261 120 324 105C356 97 390 112 426 80" stroke="rgba(255,255,255,.13)" strokeWidth="38" strokeLinecap="round" />
+          <path d="M-26 302C43 292 55 229 105 213C159 196 174 241 223 221C284 197 261 120 324 105C356 97 390 112 426 80" stroke="rgba(255,255,255,.86)" strokeWidth="2" strokeLinecap="round" strokeDasharray="3 9" />
+          <circle cx="105" cy="213" r="8" fill="#0A0A0A" stroke="white" strokeWidth="2" />
+          <circle cx="223" cy="221" r="8" fill="#0A0A0A" stroke="white" strokeWidth="2" />
+          <circle cx="324" cy="105" r="10" fill="white" />
+          <circle cx="324" cy="105" r="3.5" fill="#0A0A0A" />
+        </svg>
+
+        <div className="absolute left-6 top-20 max-w-[250px]">
+          <h2 className="font-heading text-4xl font-medium leading-[.98] tracking-[-.035em]">{copy.visualTitle}</h2>
+        </div>
+
+        <div className="absolute inset-x-4 bottom-4 rounded-[1.4rem] border border-white/15 bg-white/10 p-4 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-black"><ShieldCheck className="size-4" aria-hidden="true" /></span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[.13em] text-white/55">{copy.eligible}</p>
+              <p className="truncate font-medium">{copy.visualStatus}</p>
+            </div>
+            <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-white/65"><FileCheck2 className="size-3.5" aria-hidden="true" />Mock</span>
+          </div>
+          <ol className="mt-4 grid grid-cols-4 gap-2" aria-label={copy.visualTitle}>
+            {steps.map((step) => (
+              <li key={step} className="min-w-0 text-center">
+                <span className="mx-auto grid size-6 place-items-center rounded-full border border-white/15 bg-white/12"><Check className="size-3" aria-hidden="true" /></span>
+                <span className="mt-1.5 block truncate text-[10px] text-white/58">{step}</span>
               </li>
             ))}
           </ol>
-          <div className="mt-8 flex items-center gap-4 rounded-xl border border-[#A9D2CD] bg-[#F1FAF8] p-4">
-            <div className="grid size-11 shrink-0 place-items-center rounded-full bg-white text-[#1F7A4C]"><ShieldCheck aria-hidden="true" /></div>
-            <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-wider text-[#52667A]">{copy.eligible}</p><p className="font-heading text-xl font-semibold text-[#102A43]">{copy.visualStatus}</p></div>
-            <IndianRupee aria-hidden="true" className="ml-auto hidden text-[#C76A15] sm:block" />
-          </div>
-          <div className="mt-5 grid grid-cols-[1fr_auto] items-end gap-5"><div><div className="h-2 w-24 rounded bg-[#D9E2EC]" /><div className="mt-3 h-3 w-44 max-w-full rounded bg-[#102A43]" /></div><span className="rounded-lg border border-[#CBD5E1] px-3 py-1 text-xs font-semibold text-[#52667A]">SYNTHETIC</span></div>
         </div>
       </div>
-    </div>
+      <figcaption className="mt-4 text-center text-xs text-muted-foreground">{copy.prototype}</figcaption>
+    </figure>
   );
 }

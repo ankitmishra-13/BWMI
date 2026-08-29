@@ -12,8 +12,8 @@ export function LanguageSwitcher({ locale, copy }: { locale: Locale; copy: Copy 
   segments[1] = target;
   const href = segments.join('/') || `/${target}`;
   return (
-    <Button asChild variant="ghost" className="h-11 px-3 text-[#102A43]">
-      <a href={href}><Languages aria-hidden="true" />{target === 'hi' ? copy.hindi : copy.english}</a>
+    <Button asChild variant="ghost" size="sm">
+      <a href={href}><Languages aria-hidden="true" data-icon="inline-start" />{target === 'hi' ? copy.hindi : copy.english}</a>
     </Button>
   );
 }

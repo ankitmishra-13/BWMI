@@ -27,5 +27,5 @@ export function ServiceStartButton({ locale, serviceSlug, label, renewalFlow = f
     }
   }
 
-  return <div><Button type="button" onClick={start} disabled={loading} className="h-12 bg-[#0F766E] px-5 text-base hover:bg-[#0B5F59]">{loading ? <LoaderCircle className="animate-spin" /> : <ArrowRight />}{label}</Button>{error && <p role="alert" className="mt-2 text-sm text-[#B42318]">{error}</p>}</div>;
+  return <div><Button type="button" onClick={start} disabled={loading} size="lg">{loading ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <ArrowRight data-icon="inline-start" />}{label}</Button>{error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}</div>;
 }

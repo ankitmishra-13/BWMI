@@ -24,10 +24,10 @@ export function StartRenewalButton({ locale, label }: { locale: Locale; label: s
   }
   return (
     <div>
-      <Button type="button" onClick={start} disabled={loading} className="h-12 bg-[#0F766E] px-5 text-base hover:bg-[#0B5F59]">
-        {loading ? <LoaderCircle className="animate-spin" /> : <ArrowRight />}{label}
+      <Button type="button" onClick={start} disabled={loading} size="lg">
+        {loading ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <ArrowRight data-icon="inline-start" />}{label}
       </Button>
-      {error && <p role="alert" className="mt-2 text-sm text-[#B42318]">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
     </div>
   );
 }

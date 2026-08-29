@@ -25,22 +25,22 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const dateLocale = locale === 'hi' ? 'hi-IN' : 'en-IN';
 
   return (
-    <div lang={locale}>
+    <div lang={locale} className="civic-paper">
       <SiteHeader locale={locale} user={user} />
       <main id="main" className="py-10 sm:py-14">
         <div className="shell">
           <p className="eyebrow">{copy.workspaceEyebrow}</p>
           <div className="mt-2 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div><h1 className="max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">{locale === 'hi' ? 'आपका काल्पनिक परिवहन कार्यक्षेत्र' : 'Your synthetic transport workspace'}</h1><p className="mt-3 text-[#52667A]">{copy.welcome}, {licence.holderName}. {locale === 'hi' ? 'यहाँ कोई वास्तविक नागरिक डेटा नहीं है।' : 'No real citizen data appears here.'}</p></div>
+            <div><h1 className="max-w-4xl text-4xl leading-[1.02] tracking-[-.035em] sm:text-6xl">{locale === 'hi' ? 'आपका काल्पनिक परिवहन कार्यक्षेत्र' : 'Your synthetic transport workspace'}</h1><p className="mt-3 text-muted-foreground">{copy.welcome}, {licence.holderName}. {locale === 'hi' ? 'यहाँ कोई वास्तविक नागरिक डेटा नहीं है।' : 'No real citizen data appears here.'}</p></div>
             <StartRenewalButton locale={locale} label={copy.startRenewal} />
           </div>
 
-          <section aria-labelledby="licence-heading" className="mt-10 overflow-hidden rounded-2xl border bg-white">
+          <section aria-labelledby="licence-heading" className="ios-panel mt-10 overflow-hidden">
             <div className="grid lg:grid-cols-[1.45fr_.55fr]">
               <div className="p-6 sm:p-8">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div><p className="text-sm font-semibold text-[#52667A]">{copy.licenceLabel}</p><h2 id="licence-heading" className="mt-1 text-3xl font-semibold tracking-wide">{licence.maskedNumber}</h2></div>
-                  <Badge className="border border-[#9AC9B0] bg-[#EAF7EF] px-3 py-1 text-[#1F7A4C]"><CheckCircle2 />{copy.eligible}</Badge>
+                  <div><p className="text-sm font-semibold text-muted-foreground">{copy.licenceLabel}</p><h2 id="licence-heading" className="mt-1 text-3xl tracking-wide">{licence.maskedNumber}</h2></div>
+                  <Badge variant="outline" className="bg-[#EAF7EF] text-success"><CheckCircle2 />{copy.eligible}</Badge>
                 </div>
                 <dl className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
                   <LicenceDatum icon={UserRound} label={copy.holder} value={licence.holderName} />
@@ -48,31 +48,31 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
                   <LicenceDatum icon={CarFront} label={copy.vehicleClasses} value={licence.vehicleClasses} />
                   <LicenceDatum icon={MapPin} label={copy.issuedIn} value={licence.issueState} />
                 </dl>
-                <div className="mt-7 border-t pt-5"><dt className="text-sm font-medium text-[#52667A]">{copy.address}</dt><dd className="mt-1 font-medium">{licence.address}</dd></div>
+                <div className="mt-7 border-t pt-5"><dt className="text-sm font-medium text-muted-foreground">{copy.address}</dt><dd className="mt-1 font-medium">{licence.address}</dd></div>
               </div>
-              <aside className="border-t bg-[#F1F7F7] p-6 lg:border-l lg:border-t-0 lg:p-8">
-                <h2 className="text-xl font-semibold">{copy.whatYouNeed}</h2>
-                <ul className="mt-5 flex flex-col gap-4 text-sm text-[#40556A]">
-                  {[copy.need1, copy.need2, copy.need3].map((item) => <li key={item} className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 size-5 shrink-0 text-[#0F766E]" />{item}</li>)}
+              <aside className="border-t bg-secondary/65 p-6 lg:border-l lg:border-t-0 lg:p-8">
+                <h2 className="text-xl">{copy.whatYouNeed}</h2>
+                <ul className="mt-5 flex flex-col gap-4 text-sm text-muted-foreground">
+                  {[copy.need1, copy.need2, copy.need3].map((item) => <li key={item} className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 size-5 shrink-0 text-foreground" />{item}</li>)}
                 </ul>
               </aside>
             </div>
           </section>
 
           <section aria-labelledby="history-heading" className="mt-12">
-            <div className="flex items-center justify-between gap-4"><h2 id="history-heading" className="text-2xl font-semibold sm:text-3xl">{copy.applicationHistory}</h2><span className="text-sm text-[#52667A]">{applications.length}</span></div>
-            {applications.length === 0 ? <p className="mt-5 border-y py-7 text-[#52667A]">{copy.noApplications}</p> : (
-              <div className="mt-5 border-y">
+            <div className="flex items-center justify-between gap-4"><h2 id="history-heading" className="text-2xl sm:text-3xl">{copy.applicationHistory}</h2><span className="text-sm text-muted-foreground">{applications.length}</span></div>
+            {applications.length === 0 ? <p className="mt-5 border-y py-7 text-muted-foreground">{copy.noApplications}</p> : (
+              <div className="ios-panel mt-5 px-6">
                 {applications.map((application) => {
                   const submitted = application.status !== 'Draft';
                   const href = submitted ? localPath(locale, `/status/${application.id}`) : localPath(locale, `/renew/${application.id}`);
                   return (
                     <article key={application.id} className="grid gap-4 border-b py-6 last:border-0 sm:grid-cols-[1fr_auto] sm:items-center">
                       <div className="flex items-start gap-4">
-                        <span className={`grid size-11 shrink-0 place-items-center rounded-full ${submitted ? 'bg-[#EAF7EF] text-[#1F7A4C]' : 'bg-[#FFF3E8] text-[#C76A15]'}`}>{submitted ? <FileCheck2 /> : <Clock3 />}</span>
-                        <div><h3 className="font-heading text-lg font-semibold">{submitted ? copy.submitted : `${copy.stepOf.replace('{current}', String(application.currentStep + 1)).replace('{total}', '6')}`}</h3><p className="mt-1 font-mono text-xs text-[#52667A]">{application.id.slice(0, 8).toUpperCase()} · {new Intl.DateTimeFormat(dateLocale, { dateStyle: 'medium' }).format(new Date(application.updatedAt))}</p></div>
+                        <span className={`grid size-11 shrink-0 place-items-center rounded-full ${submitted ? 'bg-[#EAF7EF] text-success' : 'bg-secondary text-foreground'}`}>{submitted ? <FileCheck2 /> : <Clock3 />}</span>
+                        <div><h3 className="font-heading text-lg font-semibold">{submitted ? copy.submitted : `${copy.stepOf.replace('{current}', String(application.currentStep + 1)).replace('{total}', '6')}`}</h3><p className="mt-1 font-mono text-xs text-muted-foreground">{application.id.slice(0, 8).toUpperCase()} · {new Intl.DateTimeFormat(dateLocale, { dateStyle: 'medium' }).format(new Date(application.updatedAt))}</p></div>
                       </div>
-                      <Button asChild variant="outline" className="h-11 justify-self-start px-4 sm:justify-self-end"><Link href={href}>{submitted ? copy.viewStatus : copy.resumeRenewal}<ArrowRight /></Link></Button>
+                      <Button asChild variant="outline" className="justify-self-start sm:justify-self-end"><Link href={href}>{submitted ? copy.viewStatus : copy.resumeRenewal}<ArrowRight data-icon="inline-end" /></Link></Button>
                     </article>
                   );
                 })}
@@ -81,8 +81,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           </section>
 
           <section aria-labelledby="service-history-heading" className="mt-12">
-            <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow">{portal.allServices}</p><h2 id="service-history-heading" className="mt-2 text-2xl font-semibold sm:text-3xl">{locale === 'hi' ? 'अन्य सेवा आवेदन' : 'Other service applications'}</h2></div><Button asChild variant="outline" className="h-11 bg-white"><Link href={localPath(locale, '/services')}>{portal.allServices}<ArrowRight /></Link></Button></div>
-            {otherApplications.length === 0 ? <p className="mt-5 border-y py-7 text-[#52667A]">{locale === 'hi' ? 'अभी कोई अन्य सेवा आवेदन नहीं है।' : 'No other service applications yet.'}</p> : <div className="mt-5 border-y">{otherApplications.map((application) => { const service = getService(application.serviceSlug); if (!service) return null; const submitted = application.status !== 'Draft'; const href = submitted ? localPath(locale, `/services/${service.slug}/receipt/${application.id}`) : localPath(locale, `/services/${service.slug}/apply/${application.id}`); return <article key={application.id} className="grid gap-4 border-b py-6 last:border-0 sm:grid-cols-[1fr_auto] sm:items-center"><div className="flex items-start gap-4"><span className={`grid size-11 shrink-0 place-items-center rounded-full ${submitted ? 'bg-[#EAF7EF] text-[#1F7A4C]' : 'bg-[#FFF3E8] text-[#C76A15]'}`}>{submitted ? <FileCheck2 /> : <Clock3 />}</span><div><h3 className="font-heading text-lg font-semibold">{t(service.title, locale)}</h3><p className="mt-1 text-sm text-[#52667A]">{submitted ? (locale === 'hi' ? 'मॉक आवेदन जमा' : 'Mock application submitted') : (locale === 'hi' ? `चरण ${application.currentStep + 1}, कुल 4` : `Step ${application.currentStep + 1} of 4`)}</p></div></div><Button asChild variant="outline" className="h-11 justify-self-start bg-white sm:justify-self-end"><Link href={href}>{submitted ? copy.viewStatus : copy.resumeRenewal}<ArrowRight /></Link></Button></article>; })}</div>}
+            <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow">{portal.allServices}</p><h2 id="service-history-heading" className="mt-2 text-2xl sm:text-3xl">{locale === 'hi' ? 'अन्य सेवा आवेदन' : 'Other service applications'}</h2></div><Button asChild variant="outline"><Link href={localPath(locale, '/services')}>{portal.allServices}<ArrowRight data-icon="inline-end" /></Link></Button></div>
+            {otherApplications.length === 0 ? <p className="mt-5 border-y py-7 text-muted-foreground">{locale === 'hi' ? 'अभी कोई अन्य सेवा आवेदन नहीं है।' : 'No other service applications yet.'}</p> : <div className="ios-panel mt-5 px-6">{otherApplications.map((application) => { const service = getService(application.serviceSlug); if (!service) return null; const submitted = application.status !== 'Draft'; const href = submitted ? localPath(locale, `/services/${service.slug}/receipt/${application.id}`) : localPath(locale, `/services/${service.slug}/apply/${application.id}`); return <article key={application.id} className="grid gap-4 border-b py-6 last:border-0 sm:grid-cols-[1fr_auto] sm:items-center"><div className="flex items-start gap-4"><span className={`grid size-11 shrink-0 place-items-center rounded-full ${submitted ? 'bg-[#EAF7EF] text-success' : 'bg-secondary text-foreground'}`}>{submitted ? <FileCheck2 /> : <Clock3 />}</span><div><h3 className="font-heading text-lg font-semibold">{t(service.title, locale)}</h3><p className="mt-1 text-sm text-muted-foreground">{submitted ? (locale === 'hi' ? 'मॉक आवेदन जमा' : 'Mock application submitted') : (locale === 'hi' ? `चरण ${application.currentStep + 1}, कुल 4` : `Step ${application.currentStep + 1} of 4`)}</p></div></div><Button asChild variant="outline" className="justify-self-start sm:justify-self-end"><Link href={href}>{submitted ? copy.viewStatus : copy.resumeRenewal}<ArrowRight data-icon="inline-end" /></Link></Button></article>; })}</div>}
           </section>
         </div>
       </main>
@@ -91,5 +91,5 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
 }
 
 function LicenceDatum({ icon: Icon, label, value }: { icon: typeof UserRound; label: string; value: string }) {
-  return <div className="flex items-start gap-3"><Icon className="mt-1 size-5 shrink-0 text-[#0F766E]" aria-hidden="true" /><div><dt className="text-sm font-medium text-[#52667A]">{label}</dt><dd className="mt-0.5 font-semibold">{value}</dd></div></div>;
+  return <div className="flex items-start gap-3"><Icon className="mt-1 size-5 shrink-0 text-foreground" aria-hidden="true" /><div><dt className="text-sm font-medium text-muted-foreground">{label}</dt><dd className="mt-0.5 font-semibold">{value}</dd></div></div>;
 }
