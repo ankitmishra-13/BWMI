@@ -1,18 +1,64 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test('public introduction is clear and accessible', async ({ page }) => {
+test('editorial service hub is clear and accessible', async ({ page }) => {
   await page.goto('/en');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Renew your licence');
-  await expect(page.getByText('Hackathon prototype—not an official government service').first()).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Try the renewal demo' }).first()).toHaveAttribute('href', /signin-with-chatgpt|dashboard/);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Transport services');
+  await expect(page.getByText('Independent hackathon prototype—not an official government service').first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Explore all services' }).first()).toHaveAttribute('href', '/en/services');
+  await expect(page.getByRole('search').first()).toBeVisible();
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });
 
 test('language switching preserves the public page', async ({ page }) => {
   await page.goto('/en');
-  await page.getByRole('link', { name: /हिन्दी/ }).click();
+  await expect(page.getByRole('link', { name: /हिन्दी/ })).toHaveAttribute('href', '/hi');
+  await page.goto('/hi');
   await expect(page).toHaveURL(/\/hi$/);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('लाइसेंस');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('परिवहन सेवाएँ');
+});
+
+test('service directory supports search and opens a complete service brief', async ({ page }) => {
+  await page.goto('/en/services?q=challan');
+  await expect(page.getByRole('heading', { name: 'Choose what you need to do' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Check and pay eChallan' })).toBeVisible();
+  await page.goto('/en/services/echallan');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('eChallan');
+  await expect(page.getByText('Demo OTP: 123456')).toBeVisible();
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test('public demo credentials are visible and non-sensitive', async ({ page }) => {
+  await page.goto('/en/login');
+  await expect(page.getByLabel('Email address')).toHaveValue('citizen.demo@bwmi.test');
+  await expect(page.getByLabel('Password')).toHaveValue('ParivahanDemo#2026');
+  await expect(page.getByText('Synthetic data only')).toBeVisible();
+});
+
+test('demo auth protects and completes a synthetic service transaction', async ({ page }) => {
+  await page.goto('/en/login?returnTo=%2Fen%2Fdashboard');
+  await Promise.all([
+    page.waitForURL(/\/en\/dashboard/, { timeout: 60_000 }),
+    page.getByRole('button', { name: 'Open demo workspace' }).click(),
+  ]);
+  await expect(page.getByRole('heading', { name: 'Your synthetic transport workspace' })).toBeVisible();
+
+  const created = await page.request.post('/api/service-applications', { data: { serviceSlug: 'echallan', locale: 'en' } });
+  expect(created.status()).toBe(201);
+  const { id } = await created.json() as { id: string };
+  const steps = [
+    { step: 0, data: { confirmed: true } },
+    { step: 1, data: { selection: 'standard' } },
+    { step: 2, data: { otp: '123456' } },
+    { step: 3, data: { declarationsAccepted: true } },
+  ];
+  for (const payload of steps) {
+    const response = await page.request.patch(`/api/service-applications/${id}`, { data: payload });
+    expect(response.ok()).toBeTruthy();
+  }
+  await page.goto(`/en/services/echallan/receipt/${id}`);
+  await expect(page.getByRole('heading', { name: 'Your synthetic application is submitted.' })).toBeVisible();
+  await expect(page.getByText(/RAAHI-ECHA-/)).toBeVisible();
 });

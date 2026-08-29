@@ -1,17 +1,27 @@
-# Licence Renewal Guide
+# Raahi
 
-A mobile-first, bilingual Build What Moves India hackathon prototype that guides a citizen through one complete synthetic driving-licence renewal.
+A mobile-first, bilingual Build What Moves India prototype that reorganises Parivahan's public service families into an independent editorial service hub. It includes a complete driving-licence renewal, reusable synthetic flows for other citizen transactions, informational guides, and sample dashboards.
 
 ## Architecture
 
 - OpenAI Sites / Vinext, React, TypeScript, and Tailwind CSS
 - shadcn/ui with Radix primitives and Lucide icons
-- Sites authentication (ChatGPT sign-in)
+- Sites authentication (ChatGPT sign-in) plus a signed public demo session
 - Cloudflare D1 with Drizzle ORM
 - React Hook Form and Zod
 - Optional OpenAI Responses API helper using `gpt-5.6-luna`; deterministic bilingual fallback when no key is configured
 
-No request is sent to Parivahan or any other government system. Document bytes and payment details are never collected.
+No request is sent to Parivahan or any other government system. Document bytes, real identifiers, contact details, OTPs, and payment details are never collected. The official Parivahan logo and government emblems are intentionally not used.
+
+## Demo credentials
+
+```text
+Email: citizen.demo@bwmi.test
+Password: ParivahanDemo#2026
+OTP in every mock flow: 123456
+```
+
+These are public fictional credentials for judges. They do not unlock a real account or government data.
 
 ## Local development
 

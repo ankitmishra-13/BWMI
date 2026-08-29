@@ -25,5 +25,17 @@ export const assistantSchema = z.object({
   applicationId: z.string().uuid(), step: z.number().int().min(0).max(5), locale: z.enum(['en', 'hi']), question: z.string().trim().min(3).max(300),
 });
 
+export const serviceApplicationCreateSchema = z.object({
+  serviceSlug: z.string().trim().min(2).max(80),
+  locale: z.enum(['en', 'hi']),
+});
+
+export const serviceApplicationUpdateSchema = z.discriminatedUnion('step', [
+  z.object({ step: z.literal(0), data: z.object({ confirmed: z.literal(true) }) }),
+  z.object({ step: z.literal(1), data: z.object({ selection: z.enum(['standard', 'priority', 'assisted']) }) }),
+  z.object({ step: z.literal(2), data: z.object({ otp: z.literal('123456') }) }),
+  z.object({ step: z.literal(3), data: z.object({ declarationsAccepted: z.literal(true) }) }),
+]);
+
 export type ContactInput = z.infer<typeof contactSchema>;
 export type ApplicationUpdate = z.infer<typeof applicationUpdateSchema>;

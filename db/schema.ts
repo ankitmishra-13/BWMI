@@ -119,8 +119,31 @@ export const assistantRequests = sqliteTable(
   (table) => [index('assistant_rate_limit_idx').on(table.userId, table.createdAt)],
 );
 
+export const serviceApplications = sqliteTable(
+  'service_applications',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    serviceSlug: text('service_slug').notNull(),
+    category: text('category').notNull(),
+    currentStep: integer('current_step').notNull().default(0),
+    status: text('status').notNull().default('Draft'),
+    selection: text('selection'),
+    reference: text('reference'),
+    feePaise: integer('fee_paise').notNull().default(0),
+    submittedAt: text('submitted_at'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    index('service_application_user_idx').on(table.userId),
+    index('service_application_slug_idx').on(table.serviceSlug),
+  ],
+);
+
 export type DriverLicence = typeof driverLicences.$inferSelect;
 export type RenewalApplication = typeof renewalApplications.$inferSelect;
 export type ApplicationDocument = typeof applicationDocuments.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type StatusEvent = typeof statusEvents.$inferSelect;
+export type ServiceApplication = typeof serviceApplications.$inferSelect;

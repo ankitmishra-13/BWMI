@@ -8,14 +8,17 @@ import {
   payments,
   profiles,
   renewalApplications,
+  serviceApplications,
   statusEvents,
   type ApplicationDocument,
   type DriverLicence,
   type Payment,
   type RenewalApplication,
+  type ServiceApplication,
   type StatusEvent,
 } from '@/db/schema';
 import type { Locale } from '@/lib/i18n';
+import type { TransportService } from '@/lib/services';
 import type { ApplicationUpdate } from '@/lib/validation';
 
 export type ApplicationBundle = {
@@ -31,13 +34,14 @@ const now = () => new Date().toISOString();
 export async function ensureSyntheticCitizen(user: ChatGPTUser, locale: Locale) {
   const db = getDb();
   const timestamp = now();
-  const syntheticName = user.fullName?.trim() || 'Aarav Sharma';
+  const syntheticName = 'Aarav Sharma';
+  const syntheticEmail = 'citizen.demo@bwmi.test';
   await db.insert(profiles).values({
-    userId: user.userId, email: user.email, fullName: syntheticName,
+    userId: user.userId, email: syntheticEmail, fullName: syntheticName,
     preferredLocale: locale, syntheticPhone: '+91 98765 78120', createdAt: timestamp, updatedAt: timestamp,
   }).onConflictDoUpdate({
     target: profiles.userId,
-    set: { email: user.email, preferredLocale: locale, updatedAt: timestamp },
+    set: { email: syntheticEmail, fullName: syntheticName, preferredLocale: locale, updatedAt: timestamp },
   });
 
   const [existing] = await db.select().from(driverLicences).where(eq(driverLicences.userId, user.userId)).limit(1);
@@ -56,7 +60,65 @@ export async function getCitizenWorkspace(userId: string) {
   const [licence] = await db.select().from(driverLicences).where(eq(driverLicences.userId, userId)).limit(1);
   const applications = await db.select().from(renewalApplications)
     .where(eq(renewalApplications.userId, userId)).orderBy(desc(renewalApplications.createdAt));
-  return { licence, applications };
+  const otherApplications = await db.select().from(serviceApplications)
+    .where(eq(serviceApplications.userId, userId)).orderBy(desc(serviceApplications.createdAt));
+  return { licence, applications, otherApplications };
+}
+
+export async function createServiceApplication(userId: string, service: TransportService): Promise<ServiceApplication> {
+  const db = getDb();
+  const timestamp = now();
+  const application: ServiceApplication = {
+    id: crypto.randomUUID(),
+    userId,
+    serviceSlug: service.slug,
+    category: service.category,
+    currentStep: 0,
+    status: 'Draft',
+    selection: null,
+    reference: null,
+    feePaise: service.feePaise ?? 0,
+    submittedAt: null,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+  await db.insert(serviceApplications).values(application);
+  return application;
+}
+
+export async function getServiceApplication(userId: string, applicationId: string): Promise<ServiceApplication | null> {
+  const db = getDb();
+  const [application] = await db.select().from(serviceApplications)
+    .where(and(eq(serviceApplications.id, applicationId), eq(serviceApplications.userId, userId))).limit(1);
+  return application ?? null;
+}
+
+export async function advanceServiceApplication(userId: string, applicationId: string, step: number, selection?: string): Promise<ServiceApplication | null> {
+  const existing = await getServiceApplication(userId, applicationId);
+  if (!existing) return null;
+  if (existing.status !== 'Draft') return existing;
+  const timestamp = now();
+  const values: Partial<ServiceApplication> = { currentStep: Math.min(step + 1, 3), updatedAt: timestamp };
+  if (selection) values.selection = selection;
+  await getDb().update(serviceApplications).set(values)
+    .where(and(eq(serviceApplications.id, applicationId), eq(serviceApplications.userId, userId)));
+  return getServiceApplication(userId, applicationId);
+}
+
+export async function completeServiceApplication(userId: string, applicationId: string): Promise<ServiceApplication | null> {
+  const existing = await getServiceApplication(userId, applicationId);
+  if (!existing) return null;
+  if (existing.status !== 'Draft') return existing;
+  const timestamp = now();
+  const reference = `RAAHI-${existing.serviceSlug.slice(0, 4).toUpperCase()}-${timestamp.slice(2, 10).replaceAll('-', '')}-${applicationId.slice(0, 5).toUpperCase()}`;
+  await getDb().update(serviceApplications).set({
+    currentStep: 4,
+    status: 'Submitted',
+    reference,
+    submittedAt: timestamp,
+    updatedAt: timestamp,
+  }).where(and(eq(serviceApplications.id, applicationId), eq(serviceApplications.userId, userId)));
+  return getServiceApplication(userId, applicationId);
 }
 
 export async function createRenewal(userId: string) {

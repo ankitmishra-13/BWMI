@@ -36,6 +36,9 @@ a, button, input, textarea, select { outline-offset: 3px; }
 .eyebrow { color: var(--primary); font-size: .75rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
 .text-balance { text-wrap: balance; }
 .civic-rule { background: linear-gradient(90deg, var(--saffron) 0 42px, var(--primary) 42px 100%); height: 3px; }
+.nav-disclosure[open] > summary, .mobile-nav[open] > summary { background: #edf7f5; color: #0b5f59; }
+.nav-disclosure > div { animation: menu-in 160ms ease-out; }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }

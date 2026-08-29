@@ -15,8 +15,8 @@ const noto = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'Licence Renewal Guide', template: '%s · Licence Renewal Guide' },
-  description: 'A bilingual, synthetic driving-licence renewal prototype for Build What Moves India.',
+  title: { default: 'Raahi · Transport services without the maze', template: '%s · Raahi' },
+  description: 'A bilingual, independent transport-service prototype for Build What Moves India, using synthetic data only.',
 };
 
 export default function RootLayout({
