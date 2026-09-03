@@ -50,7 +50,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
 
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                   <Button asChild size="lg"><Link href={localPath(locale, '/services')}>{portal.heroPrimary}<ArrowDownRight data-icon="inline-end" /></Link></Button>
-                  <Button asChild variant="secondary" size="lg"><Link href={servicePath(locale, renewal)}>{portal.heroSecondary}<ArrowRight data-icon="inline-end" /></Link></Button>
+                  <Button asChild variant="secondary" size="lg"><Link href={localPath(locale, '/readiness')}>{locale === 'hi' ? 'पहले अपनी तैयारी जानें' : 'Check renewal readiness'}<ArrowRight data-icon="inline-end" /></Link></Button>
                 </div>
                 <p className="mt-6 flex max-w-xl items-start gap-2 text-sm text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />{portal.heroNote}</p>
               </div>
@@ -111,7 +111,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
 
         <section id="renewal-path" className="scroll-mt-24 bg-primary py-18 text-primary-foreground sm:py-24">
           <div className="shell grid gap-12 lg:grid-cols-[.85fr_1.15fr] lg:items-center">
-            <div><p className="text-xs font-semibold uppercase tracking-[.14em] text-white/55">{portal.renewalEyebrow}</p><h2 className="mt-5 text-4xl leading-[.98] tracking-[-.03em] sm:text-6xl">{portal.renewalTitle}</h2><p className="mt-6 max-w-2xl text-lg leading-8 text-white/62">{portal.renewalBody}</p><Button asChild variant="secondary" size="lg" className="mt-8"><Link href={servicePath(locale, renewal)}>{portal.renewalCta}<ArrowRight data-icon="inline-end" /></Link></Button></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[.14em] text-white/55">{portal.renewalEyebrow}</p><h2 className="mt-5 text-4xl leading-[.98] tracking-[-.03em] sm:text-6xl">{portal.renewalTitle}</h2><p className="mt-6 max-w-2xl text-lg leading-8 text-white/62">{portal.renewalBody}</p><Button asChild variant="secondary" size="lg" className="mt-8"><Link href={localPath(locale, '/readiness')}>{locale === 'hi' ? 'तैयारी जाँच शुरू करें' : 'Start readiness check'}<ArrowRight data-icon="inline-end" /></Link></Button></div>
             <div className="rounded-[2rem] border border-white/14 bg-white/6 p-3 backdrop-blur-sm">
               {[portal.step1, portal.step2, portal.step3, portal.step4].map((step, index) => (
                 <div key={step} className="grid grid-cols-[46px_1fr_auto] items-center gap-4 border-b border-white/12 px-3 py-5 last:border-0 sm:px-5">

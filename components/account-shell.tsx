@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import { FileText, LayoutDashboard, Search, UserRound } from 'lucide-react';
+import { Accessibility, FileText, LayoutDashboard, Search, UserRound } from 'lucide-react';
 import { accountCopy } from '@/lib/account-copy';
 import { localPath, type Locale } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
-type AccountRoute = 'overview' | 'applications' | 'profile';
+type AccountRoute = 'overview' | 'applications' | 'profile' | 'preferences';
 
 export function AccountShell({ locale, active, children }: { locale: Locale; active: AccountRoute; children: React.ReactNode }) {
   const copy = accountCopy[locale];
@@ -12,6 +12,7 @@ export function AccountShell({ locale, active, children }: { locale: Locale; act
     { id: 'overview', label: copy.overview, href: localPath(locale, '/dashboard'), icon: LayoutDashboard },
     { id: 'applications', label: copy.applications, href: localPath(locale, '/applications'), icon: FileText },
     { id: 'profile', label: copy.profile, href: localPath(locale, '/profile'), icon: UserRound },
+    { id: 'preferences', label: copy.preferences, href: localPath(locale, '/preferences'), icon: Accessibility },
     { id: 'services', label: copy.services, href: localPath(locale, '/services'), icon: Search },
   ] as const;
   return (

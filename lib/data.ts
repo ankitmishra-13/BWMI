@@ -4,22 +4,28 @@ import { getDb } from '@/db';
 import {
   applicationDocuments,
   assistantRequests,
+  citizenPreferences,
   driverLicences,
   payments,
   profiles,
+  readinessAssessments,
+  recoveryEvents,
   renewalApplications,
   serviceApplications,
   statusEvents,
   type ApplicationDocument,
   type DriverLicence,
   type Payment,
+  type ReadinessAssessment,
+  type RecoveryEvent,
   type RenewalApplication,
   type ServiceApplication,
   type StatusEvent,
 } from '@/db/schema';
 import type { Locale } from '@/lib/i18n';
+import { evaluateReadiness } from '@/lib/readiness';
 import type { TransportService } from '@/lib/services';
-import type { ApplicationUpdate, MockPaymentMethod, ServiceApplicationUpdate } from '@/lib/validation';
+import type { ApplicationUpdate, CitizenPreferenceInput, MockPaymentMethod, ReadinessInput, RecoveryEventInput, ServiceApplicationUpdate } from '@/lib/validation';
 
 export type ApplicationBundle = {
   application: RenewalApplication;
@@ -27,6 +33,17 @@ export type ApplicationBundle = {
   documents: ApplicationDocument[];
   payment: Payment | null;
   events: StatusEvent[];
+  readiness: ReadinessAssessment | null;
+  recoveryEvents: RecoveryEvent[];
+};
+
+export const defaultCitizenPreferences: CitizenPreferenceInput = {
+  largeText: false,
+  highContrast: false,
+  reducedMotion: false,
+  lowBandwidth: false,
+  simplifiedGuidance: false,
+  readAloud: false,
 };
 
 const now = () => new Date().toISOString();
@@ -61,6 +78,28 @@ export async function updateSyntheticProfile(userId: string, input: { fullName: 
   const timestamp = now();
   await getDb().update(profiles).set({ ...input, updatedAt: timestamp }).where(eq(profiles.userId, userId));
   return getCitizenProfile(userId);
+}
+
+export async function getCitizenPreferences(userId: string): Promise<CitizenPreferenceInput> {
+  const [preferences] = await getDb().select().from(citizenPreferences).where(eq(citizenPreferences.userId, userId)).limit(1);
+  if (!preferences) return defaultCitizenPreferences;
+  return {
+    largeText: preferences.largeText,
+    highContrast: preferences.highContrast,
+    reducedMotion: preferences.reducedMotion,
+    lowBandwidth: preferences.lowBandwidth,
+    simplifiedGuidance: preferences.simplifiedGuidance,
+    readAloud: preferences.readAloud,
+  };
+}
+
+export async function updateCitizenPreferences(userId: string, input: CitizenPreferenceInput): Promise<CitizenPreferenceInput> {
+  const updatedAt = now();
+  await getDb().insert(citizenPreferences).values({ userId, ...input, updatedAt }).onConflictDoUpdate({
+    target: citizenPreferences.userId,
+    set: { ...input, updatedAt },
+  });
+  return getCitizenPreferences(userId);
 }
 
 export async function getCitizenWorkspace(userId: string) {
@@ -163,14 +202,29 @@ function defaultServiceRequestValue(service: TransportService) {
   return 'Standard synthetic service request';
 }
 
-export async function createRenewal(userId: string) {
+export async function createRenewal(userId: string, readinessInput?: ReadinessInput) {
   const db = getDb();
   const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
   const [licence] = await db.select().from(driverLicences).where(eq(driverLicences.userId, userId)).limit(1);
   if (!profile || !licence) throw new Error('Synthetic citizen profile is unavailable.');
   const timestamp = now();
+  let readinessAssessmentId: string | null = null;
+  if (readinessInput) {
+    const result = evaluateReadiness(readinessInput);
+    readinessAssessmentId = crypto.randomUUID();
+    await db.insert(readinessAssessments).values({
+      id: readinessAssessmentId,
+      userId,
+      ...readinessInput,
+      readinessStatus: result.status,
+      medicalRequired: result.medicalRequired,
+      visitExpected: result.visitExpected,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+  }
   const application: RenewalApplication = {
-    id: crypto.randomUUID(), userId, licenceId: licence.id, currentStep: 0, status: 'Draft',
+    id: crypto.randomUUID(), userId, licenceId: licence.id, readinessAssessmentId, currentStep: 0, status: 'Draft',
     contactEmail: profile.email, contactPhone: profile.syntheticPhone, address: licence.address,
     declarationsAccepted: false, feePaise: 45000, submittedAt: null, createdAt: timestamp, updatedAt: timestamp,
   };
@@ -192,7 +246,60 @@ export async function getApplicationBundle(userId: string, applicationId: string
     .where(and(eq(payments.applicationId, applicationId), eq(payments.userId, userId))).limit(1);
   const events = await db.select().from(statusEvents)
     .where(and(eq(statusEvents.applicationId, applicationId), eq(statusEvents.userId, userId))).orderBy(statusEvents.position);
-  return { application, licence, documents, payment: payment ?? null, events };
+  const [readiness] = application.readinessAssessmentId
+    ? await db.select().from(readinessAssessments).where(and(eq(readinessAssessments.id, application.readinessAssessmentId), eq(readinessAssessments.userId, userId))).limit(1)
+    : [];
+  const recovery = await db.select().from(recoveryEvents)
+    .where(and(eq(recoveryEvents.applicationId, applicationId), eq(recoveryEvents.userId, userId))).orderBy(desc(recoveryEvents.createdAt));
+  return { application, licence, documents, payment: payment ?? null, events, readiness: readiness ?? null, recoveryEvents: recovery };
+}
+
+export async function recordRecoveryEvent(userId: string, applicationId: string, input: RecoveryEventInput) {
+  const bundle = await getApplicationBundle(userId, applicationId);
+  if (!bundle) return null;
+  const event: RecoveryEvent = {
+    id: crypto.randomUUID(),
+    applicationId,
+    userId,
+    eventType: input.eventType,
+    detail: input.detail,
+    resolved: false,
+    createdAt: now(),
+    resolvedAt: null,
+  };
+  await getDb().insert(recoveryEvents).values(event);
+  return event;
+}
+
+export async function updateNextActionState(userId: string, applicationId: string, action: 'simulate' | 'resolve', fileName?: string) {
+  const bundle = await getApplicationBundle(userId, applicationId);
+  if (!bundle || bundle.application.status === 'Draft') return null;
+  const timestamp = now();
+  if (action === 'simulate') {
+    if (bundle.application.status === 'Action required') return bundle;
+    await getDb().update(renewalApplications).set({ status: 'Action required', updatedAt: timestamp })
+      .where(and(eq(renewalApplications.id, applicationId), eq(renewalApplications.userId, userId)));
+    await getDb().insert(statusEvents).values({
+      id: crypto.randomUUID(), applicationId, userId, eventType: 'Action required',
+      titleEn: 'Action required', titleHi: 'कार्रवाई आवश्यक',
+      descriptionEn: 'The sample address proof needs a clearer filename.',
+      descriptionHi: 'नमूना पते के प्रमाण के लिए अधिक स्पष्ट फ़ाइल नाम चाहिए।',
+      position: 2, createdAt: timestamp,
+    });
+  } else {
+    await getDb().update(renewalApplications).set({ status: 'Submitted', updatedAt: timestamp })
+      .where(and(eq(renewalApplications.id, applicationId), eq(renewalApplications.userId, userId)));
+    await getDb().insert(statusEvents).values({
+      id: crypto.randomUUID(), applicationId, userId, eventType: 'Correction received',
+      titleEn: 'Sample correction received', titleHi: 'नमूना सुधार प्राप्त हुआ',
+      descriptionEn: `Metadata saved for ${fileName ?? 'sample-address-proof.pdf'}. No file was uploaded.`,
+      descriptionHi: `${fileName ?? 'sample-address-proof.pdf'} का मेटाडेटा सहेजा गया। कोई फ़ाइल अपलोड नहीं हुई।`,
+      position: 3, createdAt: timestamp,
+    });
+    await getDb().update(recoveryEvents).set({ resolved: true, resolvedAt: timestamp })
+      .where(and(eq(recoveryEvents.applicationId, applicationId), eq(recoveryEvents.userId, userId)));
+  }
+  return getApplicationBundle(userId, applicationId);
 }
 
 export async function applyApplicationUpdate(userId: string, applicationId: string, update: ApplicationUpdate) {

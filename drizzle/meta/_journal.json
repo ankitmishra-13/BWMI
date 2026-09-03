@@ -22,6 +22,13 @@
       "when": 1788031887577,
       "tag": "0002_strange_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788394027175,
+      "tag": "0003_tranquil_vector",
+      "breakpoints": true
     }
   ]
 }

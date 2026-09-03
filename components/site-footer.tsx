@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { ArrowUp, ArrowUpRight } from 'lucide-react';
-import { demoSignInPath, type ChatGPTUser } from '@/app/chatgpt-auth';
 import { Button } from '@/components/ui/button';
 import { footerCopy } from '@/lib/account-copy';
 import { localPath, type Locale } from '@/lib/i18n';
@@ -10,9 +9,9 @@ const ticker = {
   hi: ['पहले आवश्यकताएँ', 'द्विभाषी डिज़ाइन', 'सहेजे गए ड्राफ्ट', 'केवल मॉक डेटा', 'स्पष्ट रसीदें', 'कोई छिपा हस्तांतरण'],
 } as const;
 
-export function SiteFooter({ locale, user }: { locale: Locale; user?: ChatGPTUser | null }) {
+export function SiteFooter({ locale }: { locale: Locale }) {
   const copy = footerCopy[locale];
-  const applicationHref = user ? localPath(locale, '/applications') : demoSignInPath(localPath(locale, '/applications'));
+  const applicationHref = localPath(locale, '/applications');
   const columns = [
     { title: copy.services, links: [
       [copy.licence, localPath(locale, '/services?category=licence')],
@@ -22,8 +21,8 @@ export function SiteFooter({ locale, user }: { locale: Locale; user?: ChatGPTUse
     ] },
     { title: copy.account, links: [
       [copy.applications, applicationHref],
-      [copy.profile, user ? localPath(locale, '/profile') : demoSignInPath(localPath(locale, '/profile'))],
-      [copy.signIn, demoSignInPath(localPath(locale, '/dashboard'))],
+      [copy.profile, localPath(locale, '/profile')],
+      [copy.signIn, localPath(locale, '/login?returnTo=%2F' + locale + '%2Fdashboard')],
     ] },
     { title: copy.build, links: [
       [copy.brief, 'https://buildwhatmovesindia.com/brief'],

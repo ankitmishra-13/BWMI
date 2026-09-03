@@ -10,9 +10,11 @@ Help a citizen find, understand, and complete a synthetic transport-service jour
 
 **Visual thesis:** a premium public-service field guide rendered with the quiet confidence of an iOS first-party app: oversized editorial type, warm white paper, near-black actions, translucent chrome, precise dividers, and soft tactile panels over a restrained security-paper route texture.
 
-**Content plan:** public service discovery → service detail and requirements → secure demo sign-in → guided workflow → review → mock payment where relevant → receipt and trackable status. Each screen answers three questions: where am I, what is needed now, and what happens next?
+**Content plan:** describe a renewal need → confirm a personalized readiness plan → secure demo sign-in → prepared renewal workflow → review → recoverable mock payment → receipt and an explicit next-action centre. The wider service directory remains available, but the Top-10 narrative follows one non-technical, Hindi-first citizen from uncertainty to a completed synthetic renewal.
 
 **Interaction thesis:** one clear action at a time. Controls acknowledge hover and press with a small lift/scale response, panels reveal with short opacity/translate transitions, progress persists across the journey, and every simulated dependency is labelled at the point of use.
+
+**Top-10 experience goal:** a citizen should never need to know the name of a portal, form, or backend system before beginning. Raahi first asks about the citizen’s situation in ordinary language, reflects back what it understood, then exposes the smallest useful set of decisions. AI interprets language only; deterministic, inspectable rules produce the readiness result.
 
 ## Non-negotiable disclosure
 
@@ -103,6 +105,33 @@ Every locale page ends with one common Raahi footer derived from the supplied ed
 
 Every service brief exposes a dark, route-textured Journey Preview before the form. It makes estimated time, sample fee, number of stages, requirements, draft persistence, recovery behaviour, and mocked handoffs visible before sign-in. This is the core product contrast: organise around the citizen’s goal and preserve context through receipt/status rather than making the citizen discover portals and dependencies mid-task.
 
+### Flagship feature — Renewal Readiness Copilot
+
+- `/en/readiness` and `/hi/readiness` are the preferred entry points for licence renewal.
+- A citizen may type or, where the browser supports it, speak a short English, Hindi, or Hinglish description. The interface immediately shows which fields were understood and leaves every extracted answer editable.
+- The Copilot may classify intent and extract non-sensitive readiness fields. It must not decide eligibility, invent requirements, or conceal uncertainty. Deterministic versioned rules create the checklist and attention states.
+- The readiness result presents: what Raahi understood, ready items, documents to prepare, possible blockers, mock time and fee, whether an illustrative visit may be required, source links, and a prominent synthetic-data disclosure.
+- Starting from a readiness result persists the assessment and connects it to the new renewal draft. Refreshing or signing in must not discard the public assessment.
+- The primary persona is Meena Sharma, a 55-year-old Hindi-first synthetic citizen using a low-cost mobile connection. Interface copy still addresses the current user rather than narrating the persona.
+
+### Recovery and next-action centre
+
+- Save feedback uses understandable language such as “Saved just now · Safe to continue later.” Never expose storage or API terminology.
+- Wrong OTP, simulated connection interruption, mock-payment failure, refresh, and back navigation preserve earlier work and provide one recovery action.
+- The submitted status view answers five questions in order: what happened, who acts next, what the citizen should do, expected timing, and how to recover if progress stops.
+- An action-required scenario is an interactive, persisted mock state. The citizen can inspect the issue, select harmless correction metadata, resolve it, and return to the normal timeline.
+
+### Citizen display preferences
+
+- Authenticated citizens can open one “Accessibility & display” destination from the profile menu and account rail.
+- Large text, high contrast, reduced motion, low-bandwidth mode, simplified guidance, and read-aloud preference are independent, persistent choices.
+- Low-bandwidth mode removes atmospheric images, backdrop filters, diffuse shadows, and non-essential animation without hiding content or actions.
+- Simplified guidance hides secondary explanation only when the same requirement remains explicit nearby. Read-aloud actions use browser speech synthesis and always retain visible text.
+
+### Evidence section
+
+The readiness completion view includes a compact, honestly labelled prototype comparison. It may compare observable interface properties—handoffs, requirements shown before starting, draft recovery, language continuity, and next-action clarity—but must not present invented time savings, adoption statistics, or official performance claims.
+
 ## Component rules
 
 - Use shadcn primitives for Button, Input, Label, Select, Checkbox, Dialog/Sheet, Alert, Separator, and accessible form composition.
@@ -172,3 +201,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen po
 - 2026-08-30: Replaced the service dropdown and loose category links with one shadcn Navigation Menu for All services, Licence, Vehicle, and Safety. Header hierarchy now prioritises brand, structured task discovery, search, language, and account actions; category calls-to-action are borderless text links with balanced spacing.
 - 2026-08-30: Standardised form focus styling across search, text, textarea, and select controls. Rounded controls now receive a restrained neutral edge and soft civic-blue halo, while service searches suppress irrelevant browser autocomplete suggestions and forced-colors focus remains explicit.
 - 2026-08-30: Consolidated authenticated header actions into one shadcn profile navigation menu. Replaced the generic service demo with a persisted five-step application flow containing editable synthetic data, explicit before/after review, visible demo OTP, recoverable validation, and a dedicated credential-free mock payment gateway with receipt metadata.
+- 2026-09-03: Approved the Top-10 flagship direction. Added a bilingual Renewal Readiness Copilot, deterministic explainable requirement rules, prepared renewal handoff, persistent accessibility and low-bandwidth preferences, recovery event handling, an interactive next-action centre, and an evidence-based prototype comparison. The visual system and non-endorsement rules remain unchanged.

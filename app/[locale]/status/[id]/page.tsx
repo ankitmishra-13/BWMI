@@ -3,6 +3,7 @@ import { ArrowLeft, Check, CheckCircle2, Circle, Clock3, FileCheck2, ShieldCheck
 import { notFound, redirect } from 'next/navigation';
 import { requireChatGPTUser } from '@/app/chatgpt-auth';
 import { PrintButton } from '@/components/print-button';
+import { NextActionCentre } from '@/components/next-action-centre';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,9 +26,10 @@ export default async function StatusPage({ params }: { params: Promise<{ locale:
   const { application, payment } = bundle;
   if (!payment || !application.submittedAt) notFound();
   const dateLocale = locale === 'hi' ? 'hi-IN' : 'en-IN';
+  const actionRequired = application.status === 'Action required';
   const timeline = [
     [copy.submitted, copy.statusSubmittedBody, 'complete'],
-    [copy.documentsChecking, copy.statusDocumentsBody, 'current'],
+    [actionRequired ? (locale === 'hi' ? 'कार्रवाई आवश्यक' : 'Action required') : copy.documentsChecking, actionRequired ? (locale === 'hi' ? 'नमूना पते के प्रमाण में सुधार चाहिए। नीचे सुरक्षित सुधार प्रक्रिया पूरी करें।' : 'The sample address proof needs a correction. Complete the safe recovery below.') : copy.statusDocumentsBody, 'current'],
     [copy.underReview, copy.statusReviewBody, 'upcoming'],
     [copy.approved, copy.statusApprovedBody, 'upcoming'],
   ] as const;
@@ -55,6 +57,8 @@ export default async function StatusPage({ params }: { params: Promise<{ locale:
               <ReceiptDatum label={copy.paymentMethod} value={paymentMethodLabel(payment.method, locale)} />
             </dl>
           </section>
+
+          <NextActionCentre applicationId={application.id} status={application.status} locale={locale} />
 
           <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_280px]">
             <section aria-labelledby="track-heading">

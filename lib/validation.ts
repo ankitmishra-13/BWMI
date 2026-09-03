@@ -14,6 +14,46 @@ export const documentSchema = z.object({
 
 export const mockPaymentMethodSchema = z.enum(['mock-upi', 'mock-card', 'mock-netbanking']);
 
+export const readinessInputSchema = z.object({
+  ageBand: z.enum(['under-40', '40-59', '60-plus']),
+  licenceType: z.enum(['private', 'transport']),
+  expirySituation: z.enum(['more-than-year', 'within-year', 'expired-under-year', 'expired-over-year']),
+  issueState: z.enum(['Delhi', 'Maharashtra', 'Karnataka']),
+  addressChanged: z.boolean(),
+  servicePreference: z.enum(['standard', 'assisted']),
+  preferredLocale: z.enum(['en', 'hi']),
+});
+
+export const readinessCopilotSchema = z.object({
+  locale: z.enum(['en', 'hi']),
+  message: z.string().trim().min(3).max(300),
+});
+
+export const readinessCopilotOutputSchema = z.object({
+  fields: readinessInputSchema.partial(),
+  summary: z.string().trim().min(1).max(360),
+  followUp: z.string().trim().min(1).max(180),
+});
+
+export const citizenPreferenceSchema = z.object({
+  largeText: z.boolean(),
+  highContrast: z.boolean(),
+  reducedMotion: z.boolean(),
+  lowBandwidth: z.boolean(),
+  simplifiedGuidance: z.boolean(),
+  readAloud: z.boolean(),
+});
+
+export const recoveryEventSchema = z.object({
+  eventType: z.enum(['network', 'otp', 'payment']),
+  detail: z.string().trim().min(2).max(120),
+});
+
+export const nextActionUpdateSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('simulate') }),
+  z.object({ action: z.literal('resolve'), fileName: z.string().trim().min(1).max(120) }),
+]);
+
 export const applicationUpdateSchema = z.discriminatedUnion('step', [
   z.object({ step: z.literal(0), data: z.object({ confirmed: z.literal(true) }) }),
   z.object({ step: z.literal(1), data: contactSchema }),
@@ -57,6 +97,10 @@ export const syntheticProfileSchema = z.object({
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;
+export type ReadinessInput = z.infer<typeof readinessInputSchema>;
+export type ReadinessCopilotOutput = z.infer<typeof readinessCopilotOutputSchema>;
+export type CitizenPreferenceInput = z.infer<typeof citizenPreferenceSchema>;
+export type RecoveryEventInput = z.infer<typeof recoveryEventSchema>;
 export type ApplicationUpdate = z.infer<typeof applicationUpdateSchema>;
 export type ServiceApplicationDetailsInput = z.infer<typeof serviceApplicationDetailsSchema>;
 export type ServiceApplicationUpdate = z.infer<typeof serviceApplicationUpdateSchema>;

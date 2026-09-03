@@ -140,6 +140,7 @@ button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
 .mobile-nav[open] .menu-glyph > span:nth-child(3) { top: 7px; transform: rotate(-45deg); }
 .account-nav-scroll { scrollbar-width: none; }
 .account-nav-scroll::-webkit-scrollbar { display: none; }
+.preference-preview { transition: font-size 180ms ease, background-color 180ms ease, color 180ms ease; }
 .footer-ticker { animation: footer-flow 36s linear infinite; }
 @keyframes reveal-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes content-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -150,5 +151,20 @@ button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
   .footer-ticker { animation: none !important; transform: none !important; }
 }
+.experience-root[data-large-text='true'] { font-size: 112.5%; }
+.experience-root[data-high-contrast='true'] {
+  --background: #ffffff; --foreground: #000000; --card: #ffffff; --card-foreground: #000000;
+  --muted: #eeeeee; --muted-foreground: #303030; --border: #686868; --input: #555555;
+}
+.experience-root[data-high-contrast='true'] .ios-panel { border-color: #444; box-shadow: none; }
+.experience-root[data-low-bandwidth='true'] .civic-paper,
+.experience-root[data-low-bandwidth='true'] .route-texture { background-image: none; }
+.experience-root[data-low-bandwidth='true'] .ios-glass,
+.experience-root[data-low-bandwidth='true'] .site-header-chrome { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.experience-root[data-low-bandwidth='true'] .ios-panel { box-shadow: none; }
+.experience-root[data-reduced-motion='true'] *,
+.experience-root[data-reduced-motion='true'] *::before,
+.experience-root[data-reduced-motion='true'] *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+.experience-root[data-simplified-guidance='true'] .advanced-guidance { display: none !important; }
 @media (forced-colors: active) { * { border-color: CanvasText; } :focus-visible { outline: 3px solid Highlight !important; } .search-shell::after { display: none; } }
 @media print { .no-print { display: none !important; } body { background: white; } }

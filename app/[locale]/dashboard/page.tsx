@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import { requireChatGPTUser } from '@/app/chatgpt-auth';
 import { AccountShell } from '@/components/account-shell';
 import { SiteHeader } from '@/components/site-header';
-import { StartRenewalButton } from '@/components/start-renewal-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ensureSyntheticCitizen, getCitizenWorkspace } from '@/lib/data';
@@ -33,7 +32,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           <p className="eyebrow">{copy.workspaceEyebrow}</p>
           <div className="mt-2 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div><h1 className="max-w-4xl text-4xl leading-[1.02] tracking-[-.035em] sm:text-6xl">{locale === 'hi' ? 'आपका काल्पनिक परिवहन कार्यक्षेत्र' : 'Your synthetic transport workspace'}</h1><p className="mt-3 text-muted-foreground">{copy.welcome}, {licence.holderName}. {locale === 'hi' ? 'यहाँ कोई वास्तविक नागरिक डेटा नहीं है।' : 'No real citizen data appears here.'}</p></div>
-            <StartRenewalButton locale={locale} label={copy.startRenewal} />
+            <Button asChild size="lg"><Link href={localPath(locale, '/readiness')}>{locale === 'hi' ? 'तैयारी जाँच से शुरू करें' : 'Start with readiness check'}<ArrowRight /></Link></Button>
           </div>
 
           <section aria-labelledby="licence-heading" className="ios-panel mt-10 overflow-hidden">

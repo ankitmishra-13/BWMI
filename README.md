@@ -2,6 +2,20 @@
 
 A mobile-first, bilingual Build What Moves India prototype that reorganises Parivahan's public service families into an independent editorial service hub. It includes a complete driving-licence renewal, reusable synthetic flows for other citizen transactions, informational guides, and sample dashboards.
 
+**Live demo:** https://raahi-parivahan.raahi-bwmi.workers.dev/en
+
+## Two-minute judge walkthrough
+
+1. Open **Check renewal readiness** on the home page.
+2. Describe a situation in everyday English, Hindi, or Hinglish—or use the example.
+3. Review the plain-language readiness plan and its visible source notes.
+4. Sign in with the public demo account and start the prepared renewal.
+5. Complete the six guided steps. Use OTP `123456`; document selectors store only filenames and sizes.
+6. Preview the failed-payment recovery, then complete the ₹450 mock payment.
+7. On the status screen, preview **Action required**, select a harmless sample filename, and send the correction.
+
+The profile menu also contains **Comfort & accessibility** preferences for larger text, stronger contrast, reduced motion, low-data mode, simpler guidance, and read-aloud preference.
+
 ## Architecture
 
 - Cloudflare Workers / Vinext, React, TypeScript, and Tailwind CSS
@@ -26,16 +40,16 @@ These are public fictional credentials for judges. They do not unlock a real acc
 ## Local development
 
 ```bash
-npm install
-npm run db:generate
-npm run dev
+pnpm install
+pnpm db:generate
+pnpm dev
 ```
 
 Apply the generated D1 migrations to the local database if they have not been applied yet:
 
 ```bash
-npm run build
-npx wrangler d1 migrations apply DB --local --persist-to=.wrangler/state
+pnpm build
+pnpm wrangler d1 migrations apply DB --local --persist-to=.wrangler/state
 ```
 
 Copy `.env.example` to `.env.local` only if the live AI explainer is needed. The complete citizen journey works without it.
@@ -43,17 +57,17 @@ Copy `.env.example` to `.env.local` only if the live AI explainer is needed. The
 ## Verification
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run test:e2e
-npm run build
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+pnpm build
 ```
 
 To run the same browser suite against a deployed environment:
 
 ```bash
-PLAYWRIGHT_BASE_URL=https://your-worker.workers.dev npm run test:e2e
+PLAYWRIGHT_BASE_URL=https://your-worker.workers.dev pnpm test:e2e
 ```
 
 The design authority is [`Design.md`](./Design.md).
@@ -63,10 +77,10 @@ The design authority is [`Design.md`](./Design.md).
 The production Worker and D1 binding are declared in `wrangler.jsonc`.
 
 ```bash
-npx wrangler login
-npx wrangler d1 create raahi-parivahan-db
-npx wrangler d1 migrations apply raahi-parivahan-db --remote
-npx wrangler secret put DEMO_SESSION_SECRET
-npm run build
-npx wrangler deploy --config=dist/server/wrangler.json
+pnpm wrangler login
+pnpm wrangler d1 create raahi-parivahan-db
+pnpm wrangler d1 migrations apply raahi-parivahan-db --remote
+pnpm wrangler secret put DEMO_SESSION_SECRET
+pnpm build
+pnpm wrangler deploy --config=dist/server/wrangler.json
 ```

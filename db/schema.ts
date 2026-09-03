@@ -34,6 +34,7 @@ export const renewalApplications = sqliteTable(
     id: text('id').primaryKey(),
     userId: text('user_id').notNull(),
     licenceId: text('licence_id').notNull(),
+    readinessAssessmentId: text('readiness_assessment_id'),
     currentStep: integer('current_step').notNull().default(0),
     status: text('status').notNull().default('Draft'),
     contactEmail: text('contact_email').notNull(),
@@ -48,6 +49,59 @@ export const renewalApplications = sqliteTable(
   (table) => [
     index('application_user_idx').on(table.userId),
     index('application_status_idx').on(table.status),
+  ],
+);
+
+export const readinessAssessments = sqliteTable(
+  'readiness_assessments',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    ageBand: text('age_band').notNull(),
+    licenceType: text('licence_type').notNull(),
+    expirySituation: text('expiry_situation').notNull(),
+    issueState: text('issue_state').notNull(),
+    addressChanged: integer('address_changed', { mode: 'boolean' }).notNull().default(false),
+    servicePreference: text('service_preference').notNull().default('standard'),
+    preferredLocale: text('preferred_locale').notNull().default('en'),
+    readinessStatus: text('readiness_status').notNull(),
+    medicalRequired: integer('medical_required', { mode: 'boolean' }).notNull().default(false),
+    visitExpected: integer('visit_expected', { mode: 'boolean' }).notNull().default(false),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    index('readiness_user_idx').on(table.userId),
+    index('readiness_created_idx').on(table.createdAt),
+  ],
+);
+
+export const citizenPreferences = sqliteTable('citizen_preferences', {
+  userId: text('user_id').primaryKey(),
+  largeText: integer('large_text', { mode: 'boolean' }).notNull().default(false),
+  highContrast: integer('high_contrast', { mode: 'boolean' }).notNull().default(false),
+  reducedMotion: integer('reduced_motion', { mode: 'boolean' }).notNull().default(false),
+  lowBandwidth: integer('low_bandwidth', { mode: 'boolean' }).notNull().default(false),
+  simplifiedGuidance: integer('simplified_guidance', { mode: 'boolean' }).notNull().default(false),
+  readAloud: integer('read_aloud', { mode: 'boolean' }).notNull().default(false),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const recoveryEvents = sqliteTable(
+  'recovery_events',
+  {
+    id: text('id').primaryKey(),
+    applicationId: text('application_id').notNull(),
+    userId: text('user_id').notNull(),
+    eventType: text('event_type').notNull(),
+    detail: text('detail').notNull(),
+    resolved: integer('resolved', { mode: 'boolean' }).notNull().default(false),
+    createdAt: text('created_at').notNull(),
+    resolvedAt: text('resolved_at'),
+  },
+  (table) => [
+    index('recovery_application_idx').on(table.applicationId),
+    index('recovery_user_idx').on(table.userId),
   ],
 );
 
@@ -150,6 +204,9 @@ export const serviceApplications = sqliteTable(
 
 export type DriverLicence = typeof driverLicences.$inferSelect;
 export type RenewalApplication = typeof renewalApplications.$inferSelect;
+export type ReadinessAssessment = typeof readinessAssessments.$inferSelect;
+export type CitizenPreference = typeof citizenPreferences.$inferSelect;
+export type RecoveryEvent = typeof recoveryEvents.$inferSelect;
 export type ApplicationDocument = typeof applicationDocuments.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type StatusEvent = typeof statusEvents.$inferSelect;

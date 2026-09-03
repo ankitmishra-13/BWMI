@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronDown, FileText, Gauge, Languages, LogOut, UserRound } from 'lucide-react';
+import { Accessibility, ChevronDown, FileText, Gauge, Languages, LogOut, UserRound } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { chatGPTSignOutPath, type ChatGPTUser } from '@/app/chatgpt-auth';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,7 @@ export function ProfileNavigationMenu({ locale, user }: { locale: Locale; user: 
           <DropdownMenuItem asChild className="min-h-11 px-3"><Link href={localPath(locale, '/dashboard')}><Gauge />{account.overview}</Link></DropdownMenuItem>
           <DropdownMenuItem asChild className="min-h-11 px-3"><Link href={localPath(locale, '/applications')}><FileText />{account.applications}</Link></DropdownMenuItem>
           <DropdownMenuItem asChild className="min-h-11 px-3"><Link href={localPath(locale, '/profile')}><UserRound />{account.profile}</Link></DropdownMenuItem>
+          <DropdownMenuItem asChild className="min-h-11 px-3"><Link href={localPath(locale, '/preferences')}><Accessibility />{account.preferences}</Link></DropdownMenuItem>
           <DropdownMenuItem asChild className="min-h-11 px-3"><a href={languageHref}><Languages />{targetLocale === 'hi' ? 'हिन्दी' : 'English'}</a></DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

@@ -42,13 +42,17 @@ test('responsive header exposes the complete shadcn navigation menu', async ({ p
     await expect(mobileNav.getByRole('link', { name: 'Dashboards & reports', exact: true })).toBeVisible();
   } else {
     const primary = page.getByRole('navigation', { name: 'Primary' });
-    await primary.getByRole('button', { name: 'All services' }).click();
+    const allServicesTrigger = primary.getByRole('button', { name: 'All services' });
+    await allServicesTrigger.click();
     const menuViewport = primary.locator('[data-slot="navigation-menu-viewport"]');
     await expect(menuViewport.getByRole('link', { name: 'Renew a driving licence', exact: true })).toBeVisible();
     await expect(menuViewport.getByRole('link', { name: 'Rules and advisories', exact: true })).toBeVisible();
     await expect(menuViewport.getByRole('link', { name: 'All services', exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
-    await primary.getByRole('button', { name: 'Licence' }).click();
+    await expect(allServicesTrigger).toHaveAttribute('data-state', 'closed');
+    const licenceTrigger = primary.getByRole('button', { name: 'Licence' });
+    await licenceTrigger.click();
+    await expect(licenceTrigger).toHaveAttribute('data-state', 'open');
     await expect(menuViewport.getByRole('link', { name: 'Book a driving test', exact: true })).toBeVisible();
   }
 });
@@ -79,6 +83,53 @@ test('public demo credentials are visible and non-sensitive', async ({ page }) =
   await expect(page.getByLabel('Email address')).toHaveValue('citizen.demo@bwmi.test');
   await expect(page.getByLabel('Password')).toHaveValue('ParivahanDemo#2026');
   await expect(page.getByText('Synthetic data only')).toBeVisible();
+});
+
+test('readiness copilot prepares and recovers a complete renewal', async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.goto('/en/readiness');
+  await expect(page.getByRole('heading', { name: 'Know what you need before you begin.' })).toBeVisible();
+  await page.getByLabel('Your situation').fill('I am 55, my private licence expires next month, and I live in Delhi.');
+  await page.getByRole('button', { name: 'Understand my situation' }).click();
+  await expect(page.getByText('What Raahi understood')).toBeVisible();
+  await page.getByRole('button', { name: 'Show my readiness plan' }).click();
+  await expect(page.getByRole('heading', { name: 'You are ready to begin this synthetic renewal.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Sign in to start this prepared renewal' }).click();
+  await page.getByRole('button', { name: 'Open demo workspace' }).click();
+  await expect(page).toHaveURL(/\/en\/readiness\?resume=1/);
+  await page.getByRole('button', { name: 'Start prepared renewal' }).click();
+  await expect(page).toHaveURL(/\/en\/renew\//);
+
+  await expect(page.getByText('Your readiness plan is attached')).toBeVisible();
+  await page.getByLabel('I understand this eligibility result is simulated.').check();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('heading', { name: 'Confirm how we should contact you' })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('heading', { name: 'Select document metadata' })).toBeVisible();
+  const sample = { name: 'sample-proof.pdf', mimeType: 'application/pdf', buffer: Buffer.from('synthetic sample metadata') };
+  await page.getByLabel('Address proof').setInputFiles(sample);
+  await page.getByLabel('Sample medical certificate').setInputFiles({ ...sample, name: 'sample-form-1a.pdf' });
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('heading', { name: 'Enter the visible demo OTP' })).toBeVisible();
+  await page.getByLabel('Six-digit OTP').fill('111111');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByText(/123456/).last()).toBeVisible();
+  await page.getByLabel('Six-digit OTP').fill('123456');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByLabel('I confirm that all information in this prototype is synthetic.').check();
+  await page.getByLabel('I understand this does not submit a renewal to any government authority.').check();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('heading', { name: 'Simulate the ₹450 payment' })).toBeVisible();
+  await page.getByRole('button', { name: 'Preview failed-payment recovery' }).click();
+  await expect(page.getByText(/Nothing was charged and the application is safe/)).toBeVisible();
+  await page.getByRole('button', { name: 'Simulate payment and submit' }).click();
+  await expect(page).toHaveURL(/\/en\/status\//, { timeout: 30_000 });
+  await expect(page.getByRole('heading', { name: 'Nothing is needed from you right now.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Preview an action-required case' }).click();
+  await expect(page.getByRole('heading', { name: 'One sample correction is needed.' })).toBeVisible();
+  await page.getByLabel('Replacement sample file').setInputFiles({ ...sample, name: 'clear-address-proof.pdf' });
+  await page.getByRole('button', { name: 'Send sample correction' }).click();
+  await expect(page.getByRole('heading', { name: 'Nothing is needed from you right now.' })).toBeVisible();
 });
 
 test('demo auth protects and completes a synthetic service transaction', async ({ page }) => {
@@ -112,6 +163,7 @@ test('demo auth protects and completes a synthetic service transaction', async (
 
   await page.goto(`/en/services/update-mobile-number/apply/${id}`);
   await expect(page.getByRole('heading', { name: 'Check record' })).toBeVisible();
+  await page.waitForLoadState('networkidle');
   await page.getByLabel(/every result are entirely synthetic/).check();
   await page.getByRole('button', { name: 'Save and continue' }).click();
 
