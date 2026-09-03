@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { ArrowDownRight, ArrowRight, BookOpenText, CarFront, ChartNoAxesCombined, FileBadge, Gauge, Search, ShieldCheck } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { LandingVisual } from '@/components/landing-visual';
 import { JourneyPreview } from '@/components/journey-preview';
 import { SectionRail } from '@/components/section-rail';
@@ -10,7 +9,11 @@ import { Button } from '@/components/ui/button';
 import { getCopy, isLocale, localPath } from '@/lib/i18n';
 import { categoryCopy, categoryOrder, getService, portalCopy, servicePath, services, servicesByCategory, t } from '@/lib/services';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
+
+export function generateStaticParams() {
+  return [{ locale: 'en' }, { locale: 'hi' }];
+}
 
 const categoryIcons = { licence: FileBadge, vehicle: CarFront, compliance: ShieldCheck, industry: Gauge, insights: ChartNoAxesCombined, guides: BookOpenText } as const;
 
@@ -20,7 +23,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
   const locale = rawLocale;
   const portal = portalCopy[locale];
   const copy = getCopy(locale);
-  const user = await getChatGPTUser();
+  const user = null;
   const popular = services.filter((service) => service.popular).slice(0, 6);
   const renewal = getService('renew-driving-licence')!;
   return (

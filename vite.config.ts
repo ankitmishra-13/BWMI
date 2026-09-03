@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/postcss';
+import { cdnAdapter } from '@vinext/cloudflare/cache/cdn-adapter';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
 
@@ -22,7 +23,7 @@ export default defineConfig(async () => {
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,
     plugins: [
-      vinext(),
+      vinext({ cache: { cdn: cdnAdapter() } }),
       cloudflare({
         configPath: './wrangler.jsonc',
         viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },
