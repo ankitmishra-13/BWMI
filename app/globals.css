@@ -150,13 +150,7 @@ button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
 .admin-nav-scroll::-webkit-scrollbar { display: none; }
 .admin-surface, .admin-surface h1, .admin-surface h2, .admin-surface h3, .admin-surface h4 { font-family: var(--font-geist), system-ui, sans-serif; }
 .admin-surface { background: #f4f1eb; }
-@media (min-width: 768px) {
-  .admin-sidebar[data-state='collapsed']:hover [data-slot='sidebar-container'] { width: var(--sidebar-width); box-shadow: 18px 0 45px rgba(0,0,0,.18); }
-  .admin-sidebar[data-state='collapsed']:hover [data-sidebar='menu-button'] { width: 100% !important; padding: .5rem !important; }
-  .admin-sidebar[data-state='collapsed']:hover [data-sidebar='group-label'] { margin-top: 0 !important; opacity: 1 !important; }
-  .admin-sidebar[data-state='collapsed'] [data-collapsible-label] { display: none; }
-  .admin-sidebar[data-state='collapsed']:hover [data-collapsible-label] { display: block; }
-}
+.admin-login-surface, .admin-login-surface h1, .admin-login-surface h2, .admin-login-surface h3, .admin-login-surface h4 { font-family: var(--font-geist), system-ui, sans-serif; }
 .preference-preview { transition: font-size 180ms ease, background-color 180ms ease, color 180ms ease; }
 .footer-ticker { animation: footer-flow 36s linear infinite; }
 @keyframes reveal-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

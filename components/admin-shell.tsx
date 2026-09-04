@@ -36,9 +36,9 @@ export function AdminShell({ children, admin, applicationId }: { children: React
       <SidebarProvider className="admin-surface" style={{ '--sidebar-width': '16rem', '--sidebar-width-icon': '4.5rem' } as React.CSSProperties}>
         <Sidebar collapsible="icon" className="admin-sidebar">
           <SidebarHeader className="border-b border-sidebar-border p-3">
-            <Link href="/admin" className="flex h-11 items-center gap-3 rounded-lg px-2 focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+            <Link href="/admin" aria-label="Raahi operations home" className="flex h-11 items-center gap-3 rounded-lg px-2 focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0">
               <span className="relative size-3 shrink-0 rounded-full bg-sidebar-foreground after:absolute after:-right-1.5 after:-top-1.5 after:size-1.5 after:rounded-full after:bg-[#CDBB9F]" />
-              <span className="min-w-0 overflow-hidden whitespace-nowrap">
+              <span className="min-w-0 overflow-hidden whitespace-nowrap group-data-[collapsible=icon]:hidden">
                 <span className="block text-base font-semibold leading-none">Raahi</span>
                 <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[.14em] text-sidebar-foreground/55">Operations</span>
               </span>
@@ -51,7 +51,7 @@ export function AdminShell({ children, admin, applicationId }: { children: React
                 <SidebarMenu>
                   {navigation.slice(0, 6).map(({ label, href, icon: Icon }) => {
                     const current = href === '/admin' ? pathname === href : pathname.startsWith(href);
-                    return <SidebarMenuItem key={href}><SidebarMenuButton asChild isActive={current} tooltip={label} size="lg"><Link href={href}><Icon /><span>{label}</span></Link></SidebarMenuButton></SidebarMenuItem>;
+                    return <SidebarMenuItem key={href}><SidebarMenuButton asChild isActive={current} tooltip={label} size="lg"><Link href={href} aria-label={label}><Icon /><span className="group-data-[collapsible=icon]:hidden">{label}</span></Link></SidebarMenuButton></SidebarMenuItem>;
                   })}
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -63,19 +63,19 @@ export function AdminShell({ children, admin, applicationId }: { children: React
                 <SidebarMenu>
                   {navigation.slice(6).map(({ label, href, icon: Icon }) => {
                     const current = pathname.startsWith(href);
-                    return <SidebarMenuItem key={href}><SidebarMenuButton asChild isActive={current} tooltip={label}><Link href={href}><Icon /><span>{label}</span></Link></SidebarMenuButton></SidebarMenuItem>;
+                    return <SidebarMenuItem key={href}><SidebarMenuButton asChild isActive={current} tooltip={label}><Link href={href} aria-label={label}><Icon /><span className="group-data-[collapsible=icon]:hidden">{label}</span></Link></SidebarMenuButton></SidebarMenuItem>;
                   })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="border-t border-sidebar-border p-3">
-            <div data-collapsible-label className="overflow-hidden rounded-lg bg-sidebar-accent p-3">
+            <div className="overflow-hidden rounded-lg bg-sidebar-accent p-3 group-data-[collapsible=icon]:hidden">
               <p className="flex items-center gap-2 text-xs font-semibold"><ShieldCheck className="size-4" />Synthetic environment</p>
               <p className="mt-1 text-[11px] leading-5 text-sidebar-foreground/58">No live government, DigiLocker, or WhatsApp connection.</p>
             </div>
             <SidebarMenu>
-              <SidebarMenuItem><SidebarMenuButton asChild tooltip="Citizen site"><Link href="/en"><Route /><span>Citizen site</span></Link></SidebarMenuButton></SidebarMenuItem>
+              <SidebarMenuItem><SidebarMenuButton asChild tooltip="Citizen site"><Link href="/en" aria-label="Open citizen site"><Route /><span className="group-data-[collapsible=icon]:hidden">Citizen site</span></Link></SidebarMenuButton></SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
           <SidebarRail />
