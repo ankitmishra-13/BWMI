@@ -118,11 +118,24 @@ Every locale page ends with one common Raahi footer derived from the supplied ed
 
 ### Admin operations workspace
 
-- `/admin` is a separate English operational workspace with a compact shadcn-style sidebar, neutral top bar, application queue, status funnel, recent activity, and an application inspector. It does not reuse the citizen editorial hero.
-- The information order is: applications needing attention, funnel health, searchable queue, selected application, status update, citizen notification preview, audit trail.
+- `/admin` is a separate English multi-page operational workspace. It does not reuse the citizen editorial hero. Its calm, compact hierarchy is inspired by established infrastructure dashboards without copying their branding or composition.
+- The route architecture is `/admin` overview, `/admin/applications`, `/admin/applications/[id]`, `/admin/regions`, `/admin/regions/[code]`, `/admin/citizens`, `/admin/notifications`, `/admin/assistant`, `/admin/audit`, and `/admin/settings`.
+- Desktop uses the shadcn sidebar in `icon` collapse mode: 256px expanded, 72px collapsed, click to persist the preference, and a temporary pointer-hover preview when collapsed. Labels remain available through tooltips, focus, and accessible names. Mobile uses an off-canvas sheet; no workflow depends on hover.
+- Information architecture moves from national health to state/UT queues to an individual application. Each page has one primary task, visible data freshness, scoped filters, empty/error states, and a route-aware breadcrumb.
+- Seed all 28 Indian states and eight union territories as synthetic operational regions. Region detail may include fictional districts and RTO offices, but must never imply a connection to a real authority.
+- Region permissions use four demo roles: national administrator (all regions), state/UT administrator (one jurisdiction), RTO reviewer (assigned offices), and support viewer (read-only). Server queries and mutations enforce the same scope shown in the interface.
+- Every application carries a state/UT code, district, RTO code, assignment, priority, SLA due time, and last citizen update. Publishing a change atomically updates the application, status event, citizen notification, mock WhatsApp delivery record, and audit log.
 - Admins can move a renewal through `Submitted`, `Documents checking`, `Under review`, `Approved`, or `Action required`; set a 0–100 progress value; write a short citizen-facing update; and preview in-app plus mock WhatsApp copy before saving.
 - Every mutation is authenticated as the demo admin, allow-listed, validated, and audit logged. Admin actions never call a government service or real messaging provider.
 - The admin demo credentials are public synthetic credentials, distinct from the citizen account. A persistent banner identifies the panel as a hackathon prototype.
+
+### Raahi Ops Copilot
+
+- A contextual AI helper is available as a right-side Sheet on every admin page and as a larger `/admin/assistant` workspace.
+- “Complete context” means complete **permitted** context: current route, active filters, aggregate queue statistics, the selected redacted synthetic application, relevant workflow rules, and the signed-in administrator's role and region. It never means dumping the database into a prompt.
+- The helper can summarise an application, explain delays, identify missing synthetic metadata, surface SLA risk, suggest routing, draft English/Hindi citizen updates, and answer workflow questions. Each response states the evidence it used and offers a reviewable next step.
+- The helper cannot approve, reject, transfer, change progress, send a message, or access another region. Suggested actions require an explicit human confirmation through the existing validated mutation path.
+- `/api/admin/assistant` performs authentication and regional authorization before retrieval, passes redacted structured context to the model, caps input/output, rate-limits by administrator, provides deterministic fallbacks, and records token-safe audit metadata without retaining question text or citizen PII.
 
 ### Differentiating feature — Journey Preview
 
@@ -226,3 +239,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen bl
 - 2026-08-30: Consolidated authenticated header actions into one shadcn profile navigation menu. Replaced the generic service demo with a persisted five-step application flow containing editable synthetic data, explicit before/after review, visible demo OTP, recoverable validation, and a dedicated credential-free mock payment gateway with receipt metadata.
 - 2026-09-03: Approved the Top-10 flagship direction. Added a bilingual Renewal Readiness Copilot, deterministic explainable requirement rules, prepared renewal handoff, persistent accessibility and low-bandwidth preferences, recovery event handling, an interactive next-action centre, and an evidence-based prototype comparison. The visual system and non-endorsement rules remain unchanged.
 - 2026-09-04: Review direction approved a warmer beige citizen theme with black action accents, an Ask Raahi hero entry, modal-first authentication with a full synthetic registration/DigiLocker-linking funnel, a citizen notification centre, clearer application progress, and a separate Cloudflare-inspired admin operations workspace. DigiLocker and WhatsApp are simulated only; no live government or messaging integration is permitted.
+- 2026-09-05: User approved the multi-page operations architecture, all-state/UT regional controls, role-scoped administration, collapsible shadcn sidebar, citizen-visible regional updates, and Raahi Ops Copilot. AI context is explicitly permission-scoped, redacted, auditable, and human-confirmed.

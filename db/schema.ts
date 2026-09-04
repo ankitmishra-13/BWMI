@@ -41,6 +41,13 @@ export const renewalApplications = sqliteTable(
     currentStep: integer('current_step').notNull().default(0),
     status: text('status').notNull().default('Draft'),
     progressPercent: integer('progress_percent').notNull().default(10),
+    stateCode: text('state_code').notNull().default('DL'),
+    districtName: text('district_name').notNull().default('New Delhi'),
+    rtoCode: text('rto_code').notNull().default('DL-01'),
+    assignedAdminId: text('assigned_admin_id').notNull().default('demo-admin-bwmi-2026'),
+    priority: text('priority').notNull().default('Normal'),
+    slaDueAt: text('sla_due_at'),
+    lastCitizenUpdateAt: text('last_citizen_update_at'),
     contactEmail: text('contact_email').notNull(),
     contactPhone: text('contact_phone').notNull(),
     address: text('address').notNull(),
@@ -53,6 +60,8 @@ export const renewalApplications = sqliteTable(
   (table) => [
     index('application_user_idx').on(table.userId),
     index('application_status_idx').on(table.status),
+    index('application_region_idx').on(table.stateCode, table.rtoCode),
+    index('application_sla_idx').on(table.slaDueAt),
   ],
 );
 
@@ -218,6 +227,21 @@ export const assistantRequests = sqliteTable(
   (table) => [index('assistant_rate_limit_idx').on(table.userId, table.createdAt)],
 );
 
+export const adminAssistantRequests = sqliteTable(
+  'admin_assistant_requests',
+  {
+    id: text('id').primaryKey(),
+    adminId: text('admin_id').notNull(),
+    applicationId: text('application_id'),
+    stateCode: text('state_code'),
+    contextType: text('context_type').notNull(),
+    questionLength: integer('question_length').notNull(),
+    usedFallback: integer('used_fallback', { mode: 'boolean' }).notNull().default(false),
+    createdAt: text('created_at').notNull(),
+  },
+  (table) => [index('admin_assistant_rate_limit_idx').on(table.adminId, table.createdAt)],
+);
+
 export const serviceApplications = sqliteTable(
   'service_applications',
   {
@@ -256,4 +280,5 @@ export type Payment = typeof payments.$inferSelect;
 export type StatusEvent = typeof statusEvents.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
+export type AdminAssistantRequest = typeof adminAssistantRequests.$inferSelect;
 export type ServiceApplication = typeof serviceApplications.$inferSelect;

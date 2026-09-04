@@ -112,6 +112,13 @@ export const adminStatusUpdateSchema = z.object({
   queueWhatsapp: z.boolean().default(true),
 });
 
+export const adminAssistantSchema = z.object({
+  question: z.string().trim().min(3).max(300),
+  applicationId: z.string().uuid().optional(),
+  stateCode: z.string().trim().length(2).toUpperCase().optional().nullable(),
+  contextType: z.string().trim().min(2).max(80),
+});
+
 export type ContactInput = z.infer<typeof contactSchema>;
 export type ReadinessInput = z.infer<typeof readinessInputSchema>;
 export type ReadinessCopilotOutput = z.infer<typeof readinessCopilotOutputSchema>;

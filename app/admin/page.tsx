@@ -1,31 +1,48 @@
 import Link from 'next/link';
-import { ArrowRight, BellRing, CheckCircle2, CircleAlert, FileSearch, Files, ListFilter, Scale, Send, UsersRound } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Files, MapPinned } from 'lucide-react';
 import { requireAdmin } from '@/app/admin-auth';
+import { AdminApplicationTable } from '@/components/admin-application-table';
+import { AdminPageHeader } from '@/components/admin-page-header';
 import { AdminShell } from '@/components/admin-shell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getAdminOverview } from '@/lib/data';
+import { getSyntheticRegionLoad, INDIA_REGIONS } from '@/lib/regions';
 
 export const dynamic = 'force-dynamic';
 
-const funnel = [
-  { status: 'Submitted', label: 'Submitted', icon: Send },
-  { status: 'Documents checking', label: 'Documents', icon: FileSearch },
-  { status: 'Under review', label: 'Review', icon: Scale },
-  { status: 'Action required', label: 'Needs action', icon: CircleAlert },
-  { status: 'Approved', label: 'Approved', icon: CheckCircle2 },
-] as const;
+export default async function AdminOverviewPage() {
+  const admin = await requireAdmin();
+  const { applications } = await getAdminOverview(admin);
+  const actionRequired = applications.filter(({ application }) => application.status === 'Action required').length;
+  const underReview = applications.filter(({ application }) => application.status === 'Under review').length;
+  const approved = applications.filter(({ application }) => application.status === 'Approved').length;
+  const nationalLoad = INDIA_REGIONS.map((region) => ({ region, ...getSyntheticRegionLoad(region.code) })).sort((a, b) => b.atRisk - a.atRisk).slice(0, 4);
+  const funnel = [
+    { label: 'Submitted', value: applications.filter(({ application }) => application.status === 'Submitted').length },
+    { label: 'Documents', value: applications.filter(({ application }) => application.status === 'Documents checking').length },
+    { label: 'Review', value: underReview },
+    { label: 'Decision', value: approved },
+  ];
 
-export default async function AdminDashboardPage() {
-  await requireAdmin();
-  const { applications, audit } = await getAdminOverview();
-  const active = applications.filter(({ application }) => application.status !== 'Approved' && application.status !== 'Draft').length;
-  const needsAction = applications.filter(({ application }) => application.status === 'Action required').length;
-  const citizens = new Set(applications.map(({ application }) => application.userId)).size;
-  return <AdminShell active="overview"><div className="mx-auto max-w-[1500px]"><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[.12em] text-muted-foreground">Operations overview</p><h1 className="mt-2 text-4xl tracking-[-.03em]">Application control plane</h1><p className="mt-2 text-sm text-muted-foreground">Queue freshness: just now · all records are synthetic</p></div><Button asChild variant="outline"><a href="#applications"><ListFilter data-icon="inline-start" />Open application queue</a></Button></div><section aria-label="Key application counts" className="mt-7 grid overflow-hidden rounded-xl border bg-card sm:grid-cols-3"><Metric icon={Files} label="Total renewals" value={applications.length} /><Metric icon={FileSearch} label="In progress" value={active} /><Metric icon={CircleAlert} label="Needs citizen action" value={needsAction} /></section><section aria-labelledby="funnel-title" className="mt-7 rounded-xl border bg-card"><div className="flex items-start justify-between gap-4 border-b p-5"><div><h2 id="funnel-title" className="text-xl">Processing funnel</h2><p className="mt-1 text-sm text-muted-foreground">Current stage across every synthetic renewal.</p></div><Badge variant="outline">{applications.length} total</Badge></div><div className="grid sm:grid-cols-5">{funnel.map(({ status, label, icon: Icon }, index) => { const value = applications.filter(({ application }) => application.status === status).length; const width = applications.length ? Math.max(4, (value / applications.length) * 100) : 0; return <div key={status} className="border-b p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"><div className="flex items-center justify-between gap-3"><Icon className="size-4 text-muted-foreground" /><span className="text-2xl font-semibold">{value}</span></div><p className="mt-4 text-xs font-semibold uppercase tracking-[.08em] text-muted-foreground">0{index + 1} · {label}</p><Progress value={width} className="mt-3 h-1.5" /></div>; })}</div></section><section id="applications" aria-labelledby="applications-title" className="mt-7 scroll-mt-24 rounded-xl border bg-card"><div className="flex items-start justify-between gap-4 border-b p-5"><div><h2 id="applications-title" className="text-xl">Renewal applications</h2><p className="mt-1 text-sm text-muted-foreground">Open an application to update progress and notify the citizen.</p></div><Badge variant="secondary"><UsersRound />{citizens} citizens</Badge></div>{applications.length ? <Table><TableHeader><TableRow><TableHead>Application</TableHead><TableHead>Citizen</TableHead><TableHead>Status</TableHead><TableHead>Progress</TableHead><TableHead>Updated</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></TableRow></TableHeader><TableBody>{applications.map(({ application, profile, licence }) => <TableRow key={application.id}><TableCell><p className="font-mono text-xs font-semibold">BWMI-{application.id.slice(0, 8).toUpperCase()}</p><p className="mt-1 text-xs text-muted-foreground">{licence?.maskedNumber ?? 'Synthetic licence'}</p></TableCell><TableCell><p className="font-medium">{profile?.fullName ?? 'Synthetic citizen'}</p><p className="mt-1 text-xs text-muted-foreground">{profile?.preferredLocale === 'hi' ? 'Hindi' : 'English'} · {profile?.digilockerLinked ? 'Mock DigiLocker linked' : 'Manual demo'}</p></TableCell><TableCell><StatusBadge status={application.status} /></TableCell><TableCell><div className="w-28"><div className="flex justify-between text-xs"><span>{application.progressPercent}%</span></div><Progress value={application.progressPercent} className="mt-1.5 h-1.5" /></div></TableCell><TableCell className="text-xs text-muted-foreground">{new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(application.updatedAt))}</TableCell><TableCell><Button asChild variant="ghost" size="sm"><Link href={`/admin/applications/${application.id}`}>Manage<ArrowRight data-icon="inline-end" /></Link></Button></TableCell></TableRow>)}</TableBody></Table> : <p className="p-8 text-sm text-muted-foreground">No renewal applications yet. Complete the citizen renewal demo to populate this queue.</p>}</section><section id="activity" aria-labelledby="activity-title" className="mt-7 rounded-xl border bg-card"><div className="border-b p-5"><h2 id="activity-title" className="text-xl">Recent admin activity</h2><p className="mt-1 text-sm text-muted-foreground">An immutable-looking demo trail for every published status update.</p></div>{audit.length ? <ul className="divide-y">{audit.map((item) => <li key={item.id} className="grid gap-2 p-4 sm:grid-cols-[170px_1fr_auto] sm:items-center"><span className="font-mono text-xs">{item.applicationId.slice(0, 8).toUpperCase()}</span><span className="text-sm"><strong>{item.previousStatus}</strong> → <strong>{item.nextStatus}</strong><span className="ml-2 text-muted-foreground">{item.citizenMessage}</span></span><Badge variant="outline">{item.whatsappQueued ? <BellRing /> : <CheckCircle2 />}{item.whatsappQueued ? 'Mock WhatsApp' : 'In-app'}</Badge></li>)}</ul> : <p className="p-8 text-sm text-muted-foreground">No admin updates have been published.</p>}</section></div></AdminShell>;
+  return <AdminShell admin={admin}><div className="mx-auto max-w-[1500px]">
+    <AdminPageHeader eyebrow="National command centre" title="Operations at a glance" description="Start with queues needing attention, then drill into a state, RTO, or individual synthetic application. Data freshness: just now." action={<Button asChild><Link href="/admin/applications">Open application queue<ArrowRight data-icon="inline-end" /></Link></Button>} />
+    <section aria-label="Key application counts" className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <Metric title="Accessible renewals" value={applications.length} description="Within your role and regional scope" icon={Files} />
+      <Metric title="Citizen action" value={actionRequired} description="Waiting for a clear citizen response" icon={AlertTriangle} />
+      <Metric title="Under review" value={underReview} description="Owned by an operations reviewer" icon={Clock3} />
+      <Metric title="Approved" value={approved} description="Synthetic decisions completed" icon={CheckCircle2} />
+    </section>
+    <div className="mt-7 grid gap-7 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,.65fr)]">
+      <Card><CardHeader className="border-b"><CardTitle>Processing funnel</CardTitle><CardDescription>Current stage across accessible renewal applications.</CardDescription><CardAction><Badge variant="outline">{applications.length} live records</Badge></CardAction></CardHeader><CardContent className="grid gap-5 pt-1 sm:grid-cols-2">{funnel.map((item) => { const percent = applications.length ? Math.round(item.value / applications.length * 100) : 0; return <div key={item.label}><div className="flex items-center justify-between gap-3"><span className="text-sm font-medium">{item.label}</span><span className="text-sm font-semibold">{item.value}</span></div><Progress value={percent} className="mt-2 h-2" /><p className="mt-1 text-xs text-muted-foreground">{percent}% of accessible records</p></div>; })}</CardContent></Card>
+      <Card><CardHeader className="border-b"><CardTitle>Regional watchlist</CardTitle><CardDescription>Synthetic workload signals across India.</CardDescription><CardAction><Button asChild variant="ghost" size="sm"><Link href="/admin/regions"><MapPinned data-icon="inline-start" />All regions</Link></Button></CardAction></CardHeader><CardContent className="flex flex-col gap-1">{nationalLoad.map(({ region, atRisk, actionRequired: needsAction }) => <Link key={region.code} href={`/admin/regions/${region.code.toLowerCase()}`} className="flex min-h-14 items-center gap-3 rounded-lg px-2 hover:bg-secondary"><span className="grid size-8 place-items-center rounded-lg bg-secondary text-xs font-semibold">{region.code}</span><span className="min-w-0 flex-1"><span className="block truncate font-medium">{region.name}</span><span className="block text-xs text-muted-foreground">{needsAction} citizen actions</span></span><Badge variant="outline">{atRisk} at risk</Badge></Link>)}</CardContent></Card>
+    </div>
+    <Card className="mt-7"><CardHeader className="border-b"><CardTitle>Applications needing a quick review</CardTitle><CardDescription>The latest accessible records. Use the full queue for filters and assignment.</CardDescription><CardAction><Button asChild variant="ghost" size="sm"><Link href="/admin/applications">View all<ArrowRight data-icon="inline-end" /></Link></Button></CardAction></CardHeader><CardContent className="px-0"><AdminApplicationTable rows={applications.slice(0, 6)} compact /></CardContent></Card>
+  </div></AdminShell>;
 }
 
-function Metric({ icon: Icon, label, value }: { icon: typeof Files; label: string; value: number }) { return <div className="border-b p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"><Icon className="size-5 text-muted-foreground" /><p className="mt-5 text-3xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-sm text-muted-foreground">{label}</p></div>; }
-function StatusBadge({ status }: { status: string }) { return <Badge variant={status === 'Action required' ? 'destructive' : status === 'Approved' ? 'default' : 'secondary'}>{status}</Badge>; }
+function Metric({ title, value, description, icon: Icon }: { title: string; value: number; description: string; icon: typeof Files }) {
+  return <Card><CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Icon className="size-4 text-muted-foreground" />{title}</CardTitle><CardDescription>{description}</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold tracking-tight">{value}</p></CardContent></Card>;
+}

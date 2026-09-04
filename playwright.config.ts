@@ -5,7 +5,9 @@ const remoteBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
-  workers: 2,
+  // The desktop and mobile projects share one local D1 database. Serialising
+  // them avoids lock contention and dev-server module reload races.
+  workers: 1,
   timeout: 60_000,
   retries: 0,
   reporter: 'line',

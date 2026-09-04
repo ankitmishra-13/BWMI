@@ -1,8 +1,10 @@
 import { and, count, desc, eq, gte } from 'drizzle-orm';
 import type { ChatGPTUser } from '@/app/chatgpt-auth';
+import { ADMIN_ID, canAccessRegion, canMutateApplications, type AdminSession } from '@/app/admin-auth';
 import { getDb } from '@/db';
 import {
   adminAuditLogs,
+  adminAssistantRequests,
   applicationDocuments,
   assistantRequests,
   citizenPreferences,
@@ -27,6 +29,7 @@ import {
 import type { Locale } from '@/lib/i18n';
 import { evaluateReadiness } from '@/lib/readiness';
 import type { TransportService } from '@/lib/services';
+import { getRegionByName } from '@/lib/regions';
 import type { AdminStatusUpdateInput, ApplicationUpdate, CitizenPreferenceInput, MockPaymentMethod, ReadinessInput, RecoveryEventInput, ServiceApplicationUpdate } from '@/lib/validation';
 
 export type ApplicationBundle = {
@@ -218,6 +221,8 @@ export async function createRenewal(userId: string, readinessInput?: ReadinessIn
   const [licence] = await db.select().from(driverLicences).where(eq(driverLicences.userId, userId)).limit(1);
   if (!profile || !licence) throw new Error('Synthetic citizen profile is unavailable.');
   const timestamp = now();
+  const region = getRegionByName(readinessInput?.issueState ?? licence.issueState) ?? getRegionByName('Delhi');
+  const stateCode = region?.code ?? 'DL';
   let readinessAssessmentId: string | null = null;
   if (readinessInput) {
     const result = evaluateReadiness(readinessInput);
@@ -235,6 +240,8 @@ export async function createRenewal(userId: string, readinessInput?: ReadinessIn
   }
   const application: RenewalApplication = {
     id: crypto.randomUUID(), userId, licenceId: licence.id, readinessAssessmentId, currentStep: 0, status: 'Draft', progressPercent: 10,
+    stateCode, districtName: region?.capital ?? 'New Delhi', rtoCode: `${stateCode}-01`, assignedAdminId: ADMIN_ID,
+    priority: 'Normal', slaDueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), lastCitizenUpdateAt: null,
     contactEmail: profile.email, contactPhone: profile.syntheticPhone, address: licence.address,
     declarationsAccepted: false, feePaise: 45000, submittedAt: null, createdAt: timestamp, updatedAt: timestamp,
   };
@@ -390,7 +397,11 @@ export async function markNotificationsRead(userId: string, notificationId?: str
   await getDb().update(notifications).set({ read: true }).where(condition);
 }
 
-export async function getAdminOverview() {
+function applicationInScope(application: RenewalApplication, admin?: AdminSession) {
+  return !admin || canAccessRegion(admin, application.stateCode, application.rtoCode);
+}
+
+export async function getAdminOverview(admin?: AdminSession) {
   const db = getDb();
   const [applications, citizens, licences, audit] = await Promise.all([
     db.select().from(renewalApplications).orderBy(desc(renewalApplications.updatedAt)),
@@ -401,7 +412,7 @@ export async function getAdminOverview() {
   const profilesByUser = new Map(citizens.map((profile) => [profile.userId, profile]));
   const licencesByUser = new Map(licences.map((licence) => [licence.userId, licence]));
   return {
-    applications: applications.map((application) => ({
+    applications: applications.filter((application) => applicationInScope(application, admin)).map((application) => ({
       application,
       profile: profilesByUser.get(application.userId) ?? null,
       licence: licencesByUser.get(application.userId) ?? null,
@@ -410,10 +421,11 @@ export async function getAdminOverview() {
   };
 }
 
-export async function getAdminApplication(applicationId: string) {
+export async function getAdminApplication(applicationId: string, admin?: AdminSession) {
   const db = getDb();
   const [application] = await db.select().from(renewalApplications).where(eq(renewalApplications.id, applicationId)).limit(1);
   if (!application) return null;
+  if (!applicationInScope(application, admin)) return null;
   const [[profile], [licence], events, audit] = await Promise.all([
     db.select().from(profiles).where(eq(profiles.userId, application.userId)).limit(1),
     db.select().from(driverLicences).where(eq(driverLicences.userId, application.userId)).limit(1),
@@ -431,13 +443,14 @@ const adminStatusTitle = {
   'Action required': { en: 'Action required', hi: 'कार्रवाई आवश्यक' },
 } as const;
 
-export async function adminUpdateApplication(adminId: string, applicationId: string, input: AdminStatusUpdateInput) {
-  const existing = await getAdminApplication(applicationId);
+export async function adminUpdateApplication(admin: AdminSession, applicationId: string, input: AdminStatusUpdateInput) {
+  if (!canMutateApplications(admin)) throw new Error('This demo role is read-only.');
+  const existing = await getAdminApplication(applicationId, admin);
   if (!existing) return null;
   const db = getDb();
   const timestamp = now();
   const titles = adminStatusTitle[input.status];
-  await db.update(renewalApplications).set({ status: input.status, progressPercent: input.progressPercent, updatedAt: timestamp })
+  await db.update(renewalApplications).set({ status: input.status, progressPercent: input.progressPercent, assignedAdminId: admin.adminId, lastCitizenUpdateAt: timestamp, updatedAt: timestamp })
     .where(eq(renewalApplications.id, applicationId));
   await db.insert(statusEvents).values({
     id: crypto.randomUUID(), applicationId, userId: existing.application.userId, eventType: input.status,
@@ -450,11 +463,50 @@ export async function adminUpdateApplication(adminId: string, applicationId: str
     channel: input.queueWhatsapp ? 'In-app + Mock WhatsApp' : 'In-app', read: false, createdAt: timestamp,
   });
   await db.insert(adminAuditLogs).values({
-    id: crypto.randomUUID(), adminId, applicationId, previousStatus: existing.application.status,
+    id: crypto.randomUUID(), adminId: admin.adminId, applicationId, previousStatus: existing.application.status,
     nextStatus: input.status, progressPercent: input.progressPercent, citizenMessage: input.message,
     whatsappQueued: input.queueWhatsapp, createdAt: timestamp,
   });
-  return getAdminApplication(applicationId);
+  return getAdminApplication(applicationId, admin);
+}
+
+export async function getAdminNotifications(admin: AdminSession) {
+  const overview = await getAdminOverview(admin);
+  const applicationIds = new Set(overview.applications.map(({ application }) => application.id));
+  const items = await getDb().select().from(notifications).orderBy(desc(notifications.createdAt)).limit(100);
+  return items.filter((item) => applicationIds.has(item.applicationId));
+}
+
+export async function getAdminCitizens(admin: AdminSession) {
+  const overview = await getAdminOverview(admin);
+  const grouped = new Map<string, { profile: typeof overview.applications[number]['profile']; applications: typeof overview.applications }>();
+  for (const item of overview.applications) {
+    const current = grouped.get(item.application.userId) ?? { profile: item.profile, applications: [] };
+    current.applications.push(item);
+    grouped.set(item.application.userId, current);
+  }
+  return [...grouped.values()];
+}
+
+export async function getAdminAudit(admin: AdminSession) {
+  const overview = await getAdminOverview(admin);
+  const applicationIds = new Set(overview.applications.map(({ application }) => application.id));
+  const audit = await getDb().select().from(adminAuditLogs).orderBy(desc(adminAuditLogs.createdAt)).limit(100);
+  return audit.filter((item) => applicationIds.has(item.applicationId));
+}
+
+export async function recordAdminAssistantRequest(admin: AdminSession, context: { applicationId?: string; stateCode?: string; contextType: string; questionLength: number; usedFallback?: boolean }) {
+  const db = getDb();
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const [result] = await db.select({ value: count() }).from(adminAssistantRequests)
+    .where(and(eq(adminAssistantRequests.adminId, admin.adminId), gte(adminAssistantRequests.createdAt, since)));
+  if ((result?.value ?? 0) >= 20) return false;
+  await db.insert(adminAssistantRequests).values({
+    id: crypto.randomUUID(), adminId: admin.adminId, applicationId: context.applicationId ?? null,
+    stateCode: context.stateCode ?? admin.regionCode, contextType: context.contextType,
+    questionLength: context.questionLength, usedFallback: context.usedFallback ?? false, createdAt: now(),
+  });
+  return true;
 }
 
 export async function recordAssistantRequest(userId: string, applicationId: string, step: number, questionLength: number) {

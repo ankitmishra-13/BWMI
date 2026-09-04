@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adminStatusUpdateSchema, applicationUpdateSchema, contactSchema, documentSchema, serviceApplicationUpdateSchema, syntheticProfileSchema, syntheticRegistrationSchema } from '@/lib/validation';
+import { adminAssistantSchema, adminStatusUpdateSchema, applicationUpdateSchema, contactSchema, documentSchema, serviceApplicationUpdateSchema, syntheticProfileSchema, syntheticRegistrationSchema } from '@/lib/validation';
 
 describe('renewal validation', () => {
   it('accepts synthetic contact details', () => {
@@ -47,5 +47,10 @@ describe('renewal validation', () => {
   it('keeps admin status updates inside the visible progress contract', () => {
     expect(adminStatusUpdateSchema.safeParse({ status: 'Under review', progressPercent: 70, message: 'Your synthetic application is now under review.', queueWhatsapp: true }).success).toBe(true);
     expect(adminStatusUpdateSchema.safeParse({ status: 'Under review', progressPercent: 140, message: 'Too far.', queueWhatsapp: true }).success).toBe(false);
+  });
+
+  it('caps the admin copilot prompt and accepts scoped context', () => {
+    expect(adminAssistantSchema.safeParse({ question: 'Which queue needs attention?', stateCode: 'dl', contextType: '/admin' }).success).toBe(true);
+    expect(adminAssistantSchema.safeParse({ question: 'x'.repeat(301), contextType: '/admin' }).success).toBe(false);
   });
 });

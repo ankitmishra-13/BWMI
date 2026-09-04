@@ -9,7 +9,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const parsed = adminStatusUpdateSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Check the status, progress, and citizen update.' }, { status: 400 });
   const { id } = await context.params;
-  const result = await adminUpdateApplication(admin.adminId, id, parsed.data);
+  const result = await adminUpdateApplication(admin, id, parsed.data).catch((error: unknown) => ({ error: error instanceof Error ? error.message : 'Update failed.' }));
+  if (result && 'error' in result) return NextResponse.json({ error: result.error }, { status: 403 });
   if (!result) return NextResponse.json({ error: 'Application not found.' }, { status: 404 });
   return NextResponse.json({ application: result.application });
 }

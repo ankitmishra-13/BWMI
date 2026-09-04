@@ -111,9 +111,16 @@ test('admin demo signs in to the application operations dashboard', async ({ pag
     page.waitForURL(/\/admin$/, { timeout: 60_000 }),
     page.getByRole('button', { name: 'Open admin dashboard' }).click(),
   ]);
-  await expect(page.getByRole('heading', { name: 'Application control plane' })).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Operations at a glance' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Processing funnel' })).toBeVisible();
-  await expect(page.getByRole('table')).toBeVisible();
+  if ((page.viewportSize()?.width ?? 1280) < 768) {
+    await page.getByRole('button', { name: 'Collapse or expand navigation' }).click();
+  }
+  await page.getByRole('link', { name: 'Regions', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Every jurisdiction, one shared view' })).toBeVisible();
+  await expect(page.getByRole('row', { name: /Delhi/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ask Copilot' })).toBeVisible();
 });
 
 test('readiness copilot prepares and recovers a complete renewal', async ({ page }) => {
