@@ -38,7 +38,7 @@ test('responsive header exposes the complete shadcn navigation menu', async ({ p
     expect(openTransform).not.toBe(initialTransform);
     const panel = mobileNav.locator('.mobile-menu-panel');
     await expect(panel).toBeVisible();
-    expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe('rgb(255, 255, 255)');
+    expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe('rgb(255, 252, 247)');
     await expect(mobileNav.getByRole('link', { name: 'All services', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Driving licence', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Dashboards & reports', exact: true })).toBeVisible();

@@ -67,7 +67,8 @@ export function ReadinessExperience({ locale, signedIn }: { locale: Locale; sign
       if (!response.ok) throw new Error(payload.error || (locale === 'hi' ? 'कृपया केवल सामान्य स्थिति बताएँ।' : 'Please describe only the general situation.'));
       setInterpretation(payload);
       setFallback(Boolean(payload.fallback));
-      setAnswers((current) => ({ ...current, ...payload.fields, preferredLocale: locale }));
+      const extracted = Object.fromEntries(Object.entries(payload.fields).filter(([, value]) => value !== undefined)) as Partial<ReadinessInput>;
+      setAnswers((current) => ({ ...current, ...extracted, preferredLocale: locale }));
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not understand that request.'); }
     finally { setInterpreting(false); }
   }
