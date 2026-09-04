@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, BookOpenText, CarFront, ChartNoAxesCombined, FileBadge, Gauge, ShieldCheck } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -31,9 +32,22 @@ const categoryIcons = {
 } as const;
 
 const featuredCategories: ServiceCategory[] = ['licence', 'vehicle', 'compliance'];
+const subscribe = () => () => undefined;
 
 export function ServiceNavigationMenu({ locale }: { locale: Locale }) {
   const portal = portalCopy[locale];
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
+
+  if (!hydrated) {
+    return (
+      <div className="flex items-center gap-0.5" aria-label={locale === 'hi' ? 'मुख्य' : 'Main'}>
+        <Link href={localPath(locale)} className="inline-flex h-10 items-center rounded-full px-3 text-sm font-medium text-muted-foreground">{portal.home}</Link>
+        <Link href={localPath(locale, '/services')} className="inline-flex h-10 items-center rounded-full px-3.5 text-sm font-medium text-muted-foreground">{portal.allServices}</Link>
+        {featuredCategories.map((category) => <Link key={category} href={localPath(locale, `/services?category=${category}`)} className="inline-flex h-10 items-center rounded-full px-3 text-sm font-medium text-muted-foreground">{t(categoryCopy[category].short, locale)}</Link>)}
+        <Link href={localPath(locale, '/services?category=guides')} className="inline-flex h-10 items-center rounded-full px-3 text-sm font-medium text-muted-foreground">{t(categoryCopy.guides.short, locale)}</Link>
+      </div>
+    );
+  }
 
   return (
     <NavigationMenu delayDuration={80} skipDelayDuration={240} className="max-w-none">

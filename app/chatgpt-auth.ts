@@ -1,13 +1,10 @@
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import type { ChatGPTUser } from '@/lib/auth-types';
+import { DEMO_EMAIL } from '@/lib/demo-auth-config';
 
-export type ChatGPTUser = {
-  userId: string;
-  displayName: string;
-  email: string;
-  fullName: string | null;
-  authSource: 'sites' | 'demo';
-};
+export { DEMO_EMAIL, DEMO_PASSWORD } from '@/lib/demo-auth-config';
+export type { ChatGPTUser } from '@/lib/auth-types';
 
 const USER_ID_HEADER = 'oai-authenticated-user-id';
 const USER_EMAIL_HEADER = 'oai-authenticated-user-email';
@@ -19,8 +16,6 @@ const SIGN_IN_PATH = '/signin-with-chatgpt';
 const SIGN_OUT_PATH = '/signout-with-chatgpt';
 const CALLBACK_PATH = '/callback';
 export const DEMO_SESSION_COOKIE = 'raahi_demo_session';
-export const DEMO_EMAIL = 'citizen.demo@bwmi.test';
-export const DEMO_PASSWORD = 'ParivahanDemo#2026';
 const DEMO_USER_ID = 'demo-citizen-bwmi-2026';
 const DEMO_NAME = 'Aarav Sharma';
 
@@ -93,11 +88,11 @@ type DemoTokenPayload = {
   expiresAt: number;
 };
 
-export async function createDemoSessionToken(): Promise<string> {
+export async function createDemoSessionToken(profile?: { userId?: string; email?: string; fullName?: string }): Promise<string> {
   const payload: DemoTokenPayload = {
-    userId: DEMO_USER_ID,
-    email: DEMO_EMAIL,
-    fullName: DEMO_NAME,
+    userId: profile?.userId ?? DEMO_USER_ID,
+    email: profile?.email ?? DEMO_EMAIL,
+    fullName: profile?.fullName ?? DEMO_NAME,
     expiresAt: Date.now() + 12 * 60 * 60 * 1000,
   };
   const encoded = encodeBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
@@ -111,7 +106,7 @@ async function getDemoUser(): Promise<ChatGPTUser | null> {
   if (!encoded || !signature || rest.length || (await sign(encoded)) !== signature) return null;
   try {
     const payload = JSON.parse(new TextDecoder().decode(decodeBase64Url(encoded))) as DemoTokenPayload;
-    if (payload.userId !== DEMO_USER_ID || payload.email !== DEMO_EMAIL || payload.expiresAt < Date.now()) return null;
+    if (!payload.userId.startsWith('demo-citizen-') || !payload.email.toLowerCase().endsWith('@bwmi.test') || payload.expiresAt < Date.now()) return null;
     return {
       userId: payload.userId,
       email: payload.email,

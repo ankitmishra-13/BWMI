@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Accessibility, ChevronDown, FileText, Gauge, Languages, LogOut, UserRound } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
-import { chatGPTSignOutPath, type ChatGPTUser } from '@/app/chatgpt-auth';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,8 +15,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { accountCopy } from '@/lib/account-copy';
+import { chatGPTSignOutPath } from '@/lib/auth-paths';
+import type { ChatGPTUser } from '@/lib/auth-types';
 import { localPath, type Locale } from '@/lib/i18n';
 import { portalCopy } from '@/lib/services';
+
+const subscribe = () => () => undefined;
 
 export function ProfileNavigationMenu({ locale, user }: { locale: Locale; user: ChatGPTUser }) {
   const pathname = usePathname();
@@ -28,6 +32,11 @@ export function ProfileNavigationMenu({ locale, user }: { locale: Locale; user: 
   const languageHref = segments.join('/') || `/${targetLocale}`;
   const initials = user.displayName.split(/\s+/u).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'RA';
   const firstName = user.displayName.split(/\s+/u).filter(Boolean)[0] || account.profile;
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
+
+  if (!hydrated) {
+    return <Button variant="secondary" size="sm" className="gap-2 px-2 sm:px-3" aria-label={locale === 'hi' ? 'प्रोफ़ाइल नेविगेशन' : 'Profile navigation'}><span className="grid size-7 place-items-center rounded-full bg-primary text-[.68rem] font-bold text-primary-foreground" aria-hidden="true">{initials}</span><span className="hidden max-w-24 truncate sm:inline">{firstName}</span><ChevronDown aria-hidden="true" /></Button>;
+  }
 
   return (
     <DropdownMenu>

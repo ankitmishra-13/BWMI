@@ -66,6 +66,9 @@ export default async function LoginPage({ params, searchParams }: { params: Prom
               <Button type="submit" size="lg" className="mt-7 w-full">{hi ? 'डेमो कार्यक्षेत्र खोलें' : 'Open demo workspace'}<ArrowRight data-icon="inline-end" /></Button>
             </form>
 
+            <div className="mt-5 flex items-center gap-3"><span className="h-px flex-1 bg-border" /><span className="text-xs font-medium text-muted-foreground">{hi ? 'या' : 'or'}</span><span className="h-px flex-1 bg-border" /></div>
+            <Button asChild variant="secondary" className="mt-5 w-full"><Link href={localPath(locale, `/register?returnTo=${encodeURIComponent(returnTo)}`)}>{hi ? 'नया काल्पनिक खाता बनाएँ' : 'Create a synthetic account'}<ArrowRight data-icon="inline-end" /></Link></Button>
+
             <Alert className="mt-6 bg-secondary/70"><ShieldCheck /><AlertTitle>{hi ? 'केवल काल्पनिक डेटा' : 'Synthetic data only'}</AlertTitle><AlertDescription>{hi ? 'वास्तविक ID, संपर्क, OTP या भुगतान विवरण न डालें।' : 'Never enter a real ID, contact, OTP, or payment detail.'}</AlertDescription></Alert>
 
             <Button asChild variant="outline" className="mt-5 px-5"><Link href={localPath(locale)}><ArrowLeft data-icon="inline-start" />{portal.home}</Link></Button>

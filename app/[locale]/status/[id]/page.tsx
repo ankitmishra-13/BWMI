@@ -1,16 +1,16 @@
 import Link from 'next/link';
-import { ArrowLeft, Check, CheckCircle2, Circle, Clock3, FileCheck2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, FileCheck2, ShieldCheck } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { requireChatGPTUser } from '@/app/chatgpt-auth';
 import { PrintButton } from '@/components/print-button';
 import { NextActionCentre } from '@/components/next-action-centre';
+import { ApplicationTimeline } from '@/components/application-timeline';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getApplicationBundle } from '@/lib/data';
 import { getCopy, isLocale, localPath } from '@/lib/i18n';
 import { paymentMethodLabel } from '@/lib/payment';
-import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,13 +26,6 @@ export default async function StatusPage({ params }: { params: Promise<{ locale:
   const { application, payment } = bundle;
   if (!payment || !application.submittedAt) notFound();
   const dateLocale = locale === 'hi' ? 'hi-IN' : 'en-IN';
-  const actionRequired = application.status === 'Action required';
-  const timeline = [
-    [copy.submitted, copy.statusSubmittedBody, 'complete'],
-    [actionRequired ? (locale === 'hi' ? 'कार्रवाई आवश्यक' : 'Action required') : copy.documentsChecking, actionRequired ? (locale === 'hi' ? 'नमूना पते के प्रमाण में सुधार चाहिए। नीचे सुरक्षित सुधार प्रक्रिया पूरी करें।' : 'The sample address proof needs a correction. Complete the safe recovery below.') : copy.statusDocumentsBody, 'current'],
-    [copy.underReview, copy.statusReviewBody, 'upcoming'],
-    [copy.approved, copy.statusApprovedBody, 'upcoming'],
-  ] as const;
 
   return (
     <div lang={locale} className="civic-paper">
@@ -60,21 +53,8 @@ export default async function StatusPage({ params }: { params: Promise<{ locale:
 
           <NextActionCentre applicationId={application.id} status={application.status} locale={locale} />
 
-          <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_280px]">
-            <section aria-labelledby="track-heading">
-              <h2 id="track-heading" className="text-2xl sm:text-3xl">{copy.trackTitle}</h2>
-              <ol className="mt-6">
-                {timeline.map(([title, body, state], index) => (
-                  <li key={title} className="relative grid grid-cols-[40px_1fr] gap-3 pb-8 last:pb-0">
-                    {index < timeline.length - 1 && <span aria-hidden="true" className="absolute left-[15px] top-8 h-[calc(100%-8px)] w-0.5 bg-border" />}
-                    <span className={cn('relative z-10 grid size-8 place-items-center rounded-full border-2', state === 'complete' ? 'border-success bg-success text-white' : state === 'current' ? 'border-primary bg-white text-primary' : 'border-border bg-secondary text-muted-foreground')}>{state === 'complete' ? <Check className="size-4" /> : state === 'current' ? <Clock3 className="size-4" /> : <Circle className="size-3" />}</span>
-                    <div className="pt-0.5"><div className="flex flex-wrap items-center gap-2"><h3 className="text-lg">{title}</h3><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{state === 'complete' ? copy.completed : state === 'current' ? copy.current : copy.upcoming}</span></div><p className="mt-1 text-muted-foreground">{body}</p></div>
-                  </li>
-                ))}
-              </ol>
-            </section>
-            <aside className="ios-panel h-fit p-6"><FileCheck2 /><h2 className="mt-4 text-lg">{copy.expected}</h2><p className="mt-1 text-muted-foreground">{copy.expectedValue}</p><p className="mt-4 text-xs text-muted-foreground">{copy.prototype}</p></aside>
-          </div>
+          <div className="mt-12"><ApplicationTimeline application={application} locale={locale} events={bundle.events} /></div>
+          <aside className="mt-5 flex items-start gap-4 rounded-2xl border bg-secondary/55 p-5"><FileCheck2 className="mt-0.5 shrink-0" /><div><h2 className="text-lg">{copy.expected}</h2><p className="mt-1 text-muted-foreground">{copy.expectedValue}</p><p className="mt-2 text-xs text-muted-foreground">{copy.prototype}</p></div></aside>
 
           <div className="no-print mt-12 border-t pt-7"><Button asChild variant="outline"><Link href={localPath(locale, '/dashboard')}><ArrowLeft data-icon="inline-start" />{copy.returnDashboard}</Link></Button></div>
         </div>

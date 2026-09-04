@@ -8,7 +8,7 @@ This document is the single design authority for the hackathon prototype. Produc
 
 Help a citizen find, understand, and complete a synthetic transport-service journey without making them decode a directory of government portals. Driving-licence renewal remains the showcase end-to-end flow; every other surfaced service must either have a working mock flow or be clearly presented as an informational prototype.
 
-**Visual thesis:** a premium public-service field guide rendered with the quiet confidence of an iOS first-party app: oversized editorial type, warm white paper, near-black actions, translucent chrome, precise dividers, and soft tactile panels over a restrained security-paper route texture.
+**Visual thesis:** a premium public-service field guide rendered with the quiet confidence of an iOS first-party app: oversized editorial type, warm beige paper, near-black actions, translucent chrome, precise dividers, and soft tactile panels over a restrained security-paper route texture. The citizen surface feels calm and guided; the admin surface feels compact, operational, and Cloudflare-like without copying Cloudflare branding.
 
 **Content plan:** describe a renewal need → confirm a personalized readiness plan → secure demo sign-in → prepared renewal workflow → review → recoverable mock payment → receipt and an explicit next-action centre. The wider service directory remains available, but the Top-10 narrative follows one non-technical, Hindi-first citizen from uncertainty to a completed synthetic renewal.
 
@@ -30,21 +30,21 @@ The theme is light-only with high-contrast and forced-colors compatibility.
 
 | Role | Value | Usage |
 |---|---:|---|
-| Canvas | `#F7F7F5` | Warm paper page background |
-| Surface | `#FFFFFF` | Forms and meaningful containers |
+| Canvas | `#F5F0E7` | Warm beige paper page background |
+| Surface | `#FFFCF7` | Forms and meaningful containers |
 | Ink | `#0A0A0A` | Primary text, header, filled actions |
-| Muted text | `#666664` | Supporting copy |
-| Quiet surface | `#EFEFEC` | Secondary controls and subtle grouping |
-| Border | `#D8D8D3` | Inputs and semantic boundaries |
+| Muted text | `#6B6257` | Supporting copy |
+| Quiet surface | `#EDE4D7` | Secondary controls, cards, and subtle grouping |
+| Border | `#D7CBBA` | Inputs and semantic boundaries |
 | Primary | `#0A0A0A` | Buttons, active steps, important links |
 | Primary hover | `#242424` | Interactive feedback |
-| Civic texture | `#E8EDF3` | Sparse route/security-paper background only |
+| Civic texture | `#E6DED0` | Sparse route/security-paper background only |
 | Focus | `#2563EB` | Keyboard focus ring |
 | Success | `#17613E` | Success plus icon/text |
 | Warning | `#7A4B00` | Warnings plus icon/text |
 | Danger | `#B42318` | Errors and destructive actions |
 
-Contrast is mandatory. Status never relies on colour alone; pair it with an icon and text. Near-black is the only routine action colour; blue is reserved for focus and civic blue-grey is atmospheric rather than interactive.
+Contrast is mandatory. Status never relies on colour alone; pair it with an icon and text. Near-black is the only routine action colour; blue is reserved for focus. Beige communicates calm and material warmth, never disabled state.
 
 ### Typography
 
@@ -95,11 +95,34 @@ Use a persistent compact header with product name, prototype notice, service nav
 
 The dashboard is a readable licence summary and next action, not a metrics dashboard. Status uses a vertical timeline with next-step guidance.
 
+The citizen dashboard starts with the most recent application and a clear four-stage progress rail: submitted, document verification, review, and decision. Each stage shows who owns it, what has happened, and what the citizen needs to do. Technical event logs remain hidden behind progressive disclosure.
+
 The authenticated area also includes a persistent left account rail with Overview, My applications, Profile, and Browse services. My applications separates resumable drafts from submitted journeys; Profile allows only clearly fictional `@bwmi.test` identity values. The public landing-page rail remains sticky for the full editorial index and exposes account destinations below the page sections.
 
 ### Shared footer
 
 Every locale page ends with one common Raahi footer derived from the supplied editorial reference: a quiet moving capability strip, large service CTA, useful link columns, oversized low-contrast Raahi wordmark, prototype disclosure, and back-to-top action. It is navigational and brand-building, not a duplicate sitemap wall. Reduced-motion users receive a static strip.
+
+### Authentication and synthetic onboarding
+
+- Sign in and registration open in a shadcn Dialog from the persistent header so a citizen can authenticate without losing page context. Dedicated `/en/login`, `/hi/login`, and registration URLs remain available as accessible fallbacks and direct links.
+- The shared judge account remains the fastest path. Registration is a complete synthetic funnel: choose language and consent, enter fictional contact details, enter visible demo OTP `123456`, connect a mocked DigiLocker record, review, and open the workspace.
+- “Connect DigiLocker” never opens or contacts DigiLocker. It visibly simulates consent, redirect, verification, and selective document import. Only safe synthetic metadata is persisted; no document bytes, Aadhaar data, tokens, or government identifiers are accepted.
+- Every auth and DigiLocker overlay has a title, description, escape/close behavior, keyboard focus management, and a dedicated full-page fallback.
+
+### Citizen notifications
+
+- Signed-in citizens receive a labelled notification bell in the header with unread count, newest-first updates, read/unread state, application reference, and direct links to the relevant status view.
+- Admin status changes create an in-app notification and a **mock WhatsApp delivery record**. The UI must say “WhatsApp simulation” and never send to or store a real number.
+- Notifications describe the change and next action in plain language. Status colour is paired with an icon and label.
+
+### Admin operations workspace
+
+- `/admin` is a separate English operational workspace with a compact shadcn-style sidebar, neutral top bar, application queue, status funnel, recent activity, and an application inspector. It does not reuse the citizen editorial hero.
+- The information order is: applications needing attention, funnel health, searchable queue, selected application, status update, citizen notification preview, audit trail.
+- Admins can move a renewal through `Submitted`, `Documents checking`, `Under review`, `Approved`, or `Action required`; set a 0–100 progress value; write a short citizen-facing update; and preview in-app plus mock WhatsApp copy before saving.
+- Every mutation is authenticated as the demo admin, allow-listed, validated, and audit logged. Admin actions never call a government service or real messaging provider.
+- The admin demo credentials are public synthetic credentials, distinct from the citizen account. A persistent banner identifies the panel as a hackathon prototype.
 
 ### Differentiating feature — Journey Preview
 
@@ -180,7 +203,7 @@ The readiness completion view includes a compact, honestly labelled prototype co
 
 ## Anti-goals
 
-No official Parivahan logo, government emblem, campaign carousel, full-screen popup, tricolour gradient, generic dashboard card wall, hidden requirements, admin panel, decorative 3D, dark theme, glossy gradients, excessive glass effects, or live government integration.
+No official Parivahan logo, government emblem, campaign carousel, full-screen blocking popup, tricolour gradient, generic dashboard card wall, hidden requirements, decorative 3D, dark theme, glossy gradients, excessive glass effects, live government integration, live DigiLocker integration, or real WhatsApp delivery.
 
 ## Reference evidence
 
@@ -202,3 +225,4 @@ No official Parivahan logo, government emblem, campaign carousel, full-screen po
 - 2026-08-30: Standardised form focus styling across search, text, textarea, and select controls. Rounded controls now receive a restrained neutral edge and soft civic-blue halo, while service searches suppress irrelevant browser autocomplete suggestions and forced-colors focus remains explicit.
 - 2026-08-30: Consolidated authenticated header actions into one shadcn profile navigation menu. Replaced the generic service demo with a persisted five-step application flow containing editable synthetic data, explicit before/after review, visible demo OTP, recoverable validation, and a dedicated credential-free mock payment gateway with receipt metadata.
 - 2026-09-03: Approved the Top-10 flagship direction. Added a bilingual Renewal Readiness Copilot, deterministic explainable requirement rules, prepared renewal handoff, persistent accessibility and low-bandwidth preferences, recovery event handling, an interactive next-action centre, and an evidence-based prototype comparison. The visual system and non-endorsement rules remain unchanged.
+- 2026-09-04: Review direction approved a warmer beige citizen theme with black action accents, an Ask Raahi hero entry, modal-first authentication with a full synthetic registration/DigiLocker-linking funnel, a citizen notification centre, clearer application progress, and a separate Cloudflare-inspired admin operations workspace. DigiLocker and WhatsApp are simulated only; no live government or messaging integration is permitted.

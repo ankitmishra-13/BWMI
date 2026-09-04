@@ -2,12 +2,14 @@ import { and, count, desc, eq, gte } from 'drizzle-orm';
 import type { ChatGPTUser } from '@/app/chatgpt-auth';
 import { getDb } from '@/db';
 import {
+  adminAuditLogs,
   applicationDocuments,
   assistantRequests,
   citizenPreferences,
   driverLicences,
   payments,
   profiles,
+  notifications,
   readinessAssessments,
   recoveryEvents,
   renewalApplications,
@@ -25,7 +27,7 @@ import {
 import type { Locale } from '@/lib/i18n';
 import { evaluateReadiness } from '@/lib/readiness';
 import type { TransportService } from '@/lib/services';
-import type { ApplicationUpdate, CitizenPreferenceInput, MockPaymentMethod, ReadinessInput, RecoveryEventInput, ServiceApplicationUpdate } from '@/lib/validation';
+import type { AdminStatusUpdateInput, ApplicationUpdate, CitizenPreferenceInput, MockPaymentMethod, ReadinessInput, RecoveryEventInput, ServiceApplicationUpdate } from '@/lib/validation';
 
 export type ApplicationBundle = {
   application: RenewalApplication;
@@ -48,17 +50,25 @@ export const defaultCitizenPreferences: CitizenPreferenceInput = {
 
 const now = () => new Date().toISOString();
 
-export async function ensureSyntheticCitizen(user: ChatGPTUser, locale: Locale) {
+export async function ensureSyntheticCitizen(user: ChatGPTUser, locale: Locale, onboarding?: { syntheticPhone?: string; digilockerLinked?: boolean }) {
   const db = getDb();
   const timestamp = now();
-  const syntheticName = 'Aarav Sharma';
-  const syntheticEmail = 'citizen.demo@bwmi.test';
+  const syntheticName = user.fullName || 'Aarav Sharma';
+  const syntheticEmail = user.email.toLowerCase().endsWith('@bwmi.test') ? user.email : 'citizen.demo@bwmi.test';
+  const digilockerLinked = onboarding?.digilockerLinked === true;
   await db.insert(profiles).values({
     userId: user.userId, email: syntheticEmail, fullName: syntheticName,
-    preferredLocale: locale, syntheticPhone: '+91 98765 78120', createdAt: timestamp, updatedAt: timestamp,
+    preferredLocale: locale, syntheticPhone: onboarding?.syntheticPhone || '+91 98765 78120',
+    digilockerLinked, digilockerLinkedAt: digilockerLinked ? timestamp : null,
+    onboardingCompleted: digilockerLinked, createdAt: timestamp, updatedAt: timestamp,
   }).onConflictDoUpdate({
     target: profiles.userId,
-    set: { preferredLocale: locale, updatedAt: timestamp },
+    set: onboarding ? {
+      email: syntheticEmail, fullName: syntheticName, preferredLocale: locale,
+      syntheticPhone: onboarding.syntheticPhone || '+91 98765 78120',
+      digilockerLinked, digilockerLinkedAt: digilockerLinked ? timestamp : null,
+      onboardingCompleted: digilockerLinked, updatedAt: timestamp,
+    } : { preferredLocale: locale, updatedAt: timestamp },
   });
 
   await db.insert(driverLicences).values({
@@ -224,7 +234,7 @@ export async function createRenewal(userId: string, readinessInput?: ReadinessIn
     });
   }
   const application: RenewalApplication = {
-    id: crypto.randomUUID(), userId, licenceId: licence.id, readinessAssessmentId, currentStep: 0, status: 'Draft',
+    id: crypto.randomUUID(), userId, licenceId: licence.id, readinessAssessmentId, currentStep: 0, status: 'Draft', progressPercent: 10,
     contactEmail: profile.email, contactPhone: profile.syntheticPhone, address: licence.address,
     declarationsAccepted: false, feePaise: 45000, submittedAt: null, createdAt: timestamp, updatedAt: timestamp,
   };
@@ -277,7 +287,7 @@ export async function updateNextActionState(userId: string, applicationId: strin
   const timestamp = now();
   if (action === 'simulate') {
     if (bundle.application.status === 'Action required') return bundle;
-    await getDb().update(renewalApplications).set({ status: 'Action required', updatedAt: timestamp })
+    await getDb().update(renewalApplications).set({ status: 'Action required', progressPercent: 45, updatedAt: timestamp })
       .where(and(eq(renewalApplications.id, applicationId), eq(renewalApplications.userId, userId)));
     await getDb().insert(statusEvents).values({
       id: crypto.randomUUID(), applicationId, userId, eventType: 'Action required',
@@ -287,7 +297,7 @@ export async function updateNextActionState(userId: string, applicationId: strin
       position: 2, createdAt: timestamp,
     });
   } else {
-    await getDb().update(renewalApplications).set({ status: 'Submitted', updatedAt: timestamp })
+    await getDb().update(renewalApplications).set({ status: 'Documents checking', progressPercent: 40, updatedAt: timestamp })
       .where(and(eq(renewalApplications.id, applicationId), eq(renewalApplications.userId, userId)));
     await getDb().insert(statusEvents).values({
       id: crypto.randomUUID(), applicationId, userId, eventType: 'Correction received',
@@ -351,7 +361,7 @@ async function completeMockPayment(userId: string, applicationId: string, paymen
     state: 'Mock successful', method: paymentMethod, transactionReference, paidAt,
   });
   await db.update(renewalApplications).set({
-    currentStep: 6, status: 'Submitted', submittedAt: paidAt, updatedAt: paidAt,
+    currentStep: 6, status: 'Submitted', progressPercent: 25, submittedAt: paidAt, updatedAt: paidAt,
   }).where(and(eq(renewalApplications.id, applicationId), eq(renewalApplications.userId, userId)));
   await db.insert(statusEvents).values({
     id: crypto.randomUUID(), applicationId, userId, eventType: 'Submitted',
@@ -360,7 +370,91 @@ async function completeMockPayment(userId: string, applicationId: string, paymen
     descriptionHi: 'काल्पनिक आवेदन और मॉक भुगतान दर्ज किया गया।',
     position: 1, createdAt: paidAt,
   });
+  await db.insert(notifications).values({
+    id: crypto.randomUUID(), applicationId, userId, eventType: 'Submitted', channel: 'In-app', read: false,
+    titleEn: 'Application submitted', titleHi: 'आवेदन जमा हुआ',
+    bodyEn: 'Your synthetic renewal was submitted. Document checking is the next step.',
+    bodyHi: 'आपका काल्पनिक नवीनीकरण जमा हो गया। अगला चरण दस्तावेज़ जाँच है।', createdAt: paidAt,
+  });
   return getApplicationBundle(userId, applicationId);
+}
+
+export async function getNotifications(userId: string) {
+  return getDb().select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt)).limit(20);
+}
+
+export async function markNotificationsRead(userId: string, notificationId?: string) {
+  const condition = notificationId
+    ? and(eq(notifications.userId, userId), eq(notifications.id, notificationId))
+    : eq(notifications.userId, userId);
+  await getDb().update(notifications).set({ read: true }).where(condition);
+}
+
+export async function getAdminOverview() {
+  const db = getDb();
+  const [applications, citizens, licences, audit] = await Promise.all([
+    db.select().from(renewalApplications).orderBy(desc(renewalApplications.updatedAt)),
+    db.select().from(profiles),
+    db.select().from(driverLicences),
+    db.select().from(adminAuditLogs).orderBy(desc(adminAuditLogs.createdAt)).limit(12),
+  ]);
+  const profilesByUser = new Map(citizens.map((profile) => [profile.userId, profile]));
+  const licencesByUser = new Map(licences.map((licence) => [licence.userId, licence]));
+  return {
+    applications: applications.map((application) => ({
+      application,
+      profile: profilesByUser.get(application.userId) ?? null,
+      licence: licencesByUser.get(application.userId) ?? null,
+    })),
+    audit,
+  };
+}
+
+export async function getAdminApplication(applicationId: string) {
+  const db = getDb();
+  const [application] = await db.select().from(renewalApplications).where(eq(renewalApplications.id, applicationId)).limit(1);
+  if (!application) return null;
+  const [[profile], [licence], events, audit] = await Promise.all([
+    db.select().from(profiles).where(eq(profiles.userId, application.userId)).limit(1),
+    db.select().from(driverLicences).where(eq(driverLicences.userId, application.userId)).limit(1),
+    db.select().from(statusEvents).where(eq(statusEvents.applicationId, applicationId)).orderBy(desc(statusEvents.createdAt)),
+    db.select().from(adminAuditLogs).where(eq(adminAuditLogs.applicationId, applicationId)).orderBy(desc(adminAuditLogs.createdAt)),
+  ]);
+  return { application, profile: profile ?? null, licence: licence ?? null, events, audit };
+}
+
+const adminStatusTitle = {
+  'Submitted': { en: 'Application submitted', hi: 'आवेदन जमा हुआ' },
+  'Documents checking': { en: 'Documents are being checked', hi: 'दस्तावेज़ों की जाँच जारी है' },
+  'Under review': { en: 'Application is under review', hi: 'आवेदन की समीक्षा जारी है' },
+  'Approved': { en: 'Renewal approved', hi: 'नवीनीकरण स्वीकृत' },
+  'Action required': { en: 'Action required', hi: 'कार्रवाई आवश्यक' },
+} as const;
+
+export async function adminUpdateApplication(adminId: string, applicationId: string, input: AdminStatusUpdateInput) {
+  const existing = await getAdminApplication(applicationId);
+  if (!existing) return null;
+  const db = getDb();
+  const timestamp = now();
+  const titles = adminStatusTitle[input.status];
+  await db.update(renewalApplications).set({ status: input.status, progressPercent: input.progressPercent, updatedAt: timestamp })
+    .where(eq(renewalApplications.id, applicationId));
+  await db.insert(statusEvents).values({
+    id: crypto.randomUUID(), applicationId, userId: existing.application.userId, eventType: input.status,
+    titleEn: titles.en, titleHi: titles.hi, descriptionEn: input.message,
+    descriptionHi: input.message, position: input.progressPercent, createdAt: timestamp,
+  });
+  await db.insert(notifications).values({
+    id: crypto.randomUUID(), applicationId, userId: existing.application.userId, eventType: input.status,
+    titleEn: titles.en, titleHi: titles.hi, bodyEn: input.message, bodyHi: input.message,
+    channel: input.queueWhatsapp ? 'In-app + Mock WhatsApp' : 'In-app', read: false, createdAt: timestamp,
+  });
+  await db.insert(adminAuditLogs).values({
+    id: crypto.randomUUID(), adminId, applicationId, previousStatus: existing.application.status,
+    nextStatus: input.status, progressPercent: input.progressPercent, citizenMessage: input.message,
+    whatsappQueued: input.queueWhatsapp, createdAt: timestamp,
+  });
+  return getAdminApplication(applicationId);
 }
 
 export async function recordAssistantRequest(userId: string, applicationId: string, step: number, questionLength: number) {

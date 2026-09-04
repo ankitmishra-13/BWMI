@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { ArrowRight, Search, ShieldCheck } from 'lucide-react';
-import { demoSignInPath, type ChatGPTUser } from '@/app/chatgpt-auth';
+import { type ChatGPTUser } from '@/app/chatgpt-auth';
+import { AuthDialog } from '@/components/auth-dialog';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ProfileNavigationMenu } from '@/components/profile-navigation-menu';
+import { NotificationMenu } from '@/components/notification-menu';
 import { ServiceNavigationMenu } from '@/components/service-navigation-menu';
 import { Button } from '@/components/ui/button';
 import { getCopy, localPath, type Locale } from '@/lib/i18n';
@@ -40,7 +42,7 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
             <Button asChild variant="secondary" size="sm" className="hidden xl:inline-flex">
               <Link href={localPath(locale, '/services')}><Search data-icon="inline-start" />{portal.search}</Link>
             </Button>
-            {user ? <ProfileNavigationMenu locale={locale} user={user} /> : <><LanguageSwitcher locale={locale} copy={copy} /><Button asChild size="sm" className="hidden sm:inline-flex"><Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link></Button></>}
+            {user ? <><NotificationMenu locale={locale} /><ProfileNavigationMenu locale={locale} user={user} /></> : <><LanguageSwitcher locale={locale} copy={copy} /><span className="hidden sm:inline-flex"><AuthDialog locale={locale} /></span></>}
 
             <details className="mobile-nav relative lg:hidden">
               <summary className="pressable flex size-11 cursor-pointer list-none items-center justify-center rounded-full border bg-white/90 [&::-webkit-details-marker]:hidden" aria-label={portal.menu}>
@@ -64,7 +66,7 @@ export function SiteHeader({ locale, user }: { locale: Locale; user?: ChatGPTUse
                     </Link>
                   ))}
                 </nav>
-                {!user && <Button asChild className="mt-4 w-full"><Link href={demoSignInPath(localPath(locale, '/dashboard'))}>{portal.signIn}<ArrowRight data-icon="inline-end" /></Link></Button>}
+                {!user && <div className="mt-4"><AuthDialog locale={locale} fullWidth /></div>}
               </div>
             </details>
           </div>

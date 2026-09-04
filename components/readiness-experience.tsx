@@ -45,8 +45,9 @@ export function ReadinessExperience({ locale, signedIn }: { locale: Locale; sign
         const stored = window.sessionStorage.getItem(storageKey);
         if (!stored) return;
         const parsed = JSON.parse(stored) as ReadinessInput;
-        setAnswers({ ...parsed, preferredLocale: locale });
-        setResult(evaluateReadiness({ ...parsed, preferredLocale: locale }));
+        const restored = { ...defaults(locale), ...parsed, preferredLocale: locale };
+        setAnswers(restored);
+        setResult(evaluateReadiness(restored));
       } catch { /* Start from the safe example answers. */ }
     }, 0);
     return () => window.clearTimeout(timer);

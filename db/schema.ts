@@ -6,6 +6,9 @@ export const profiles = sqliteTable('profiles', {
   fullName: text('full_name').notNull(),
   preferredLocale: text('preferred_locale').notNull().default('en'),
   syntheticPhone: text('synthetic_phone').notNull().default('+91 ••••• 78120'),
+  digilockerLinked: integer('digilocker_linked', { mode: 'boolean' }).notNull().default(false),
+  digilockerLinkedAt: text('digilocker_linked_at'),
+  onboardingCompleted: integer('onboarding_completed', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
@@ -37,6 +40,7 @@ export const renewalApplications = sqliteTable(
     readinessAssessmentId: text('readiness_assessment_id'),
     currentStep: integer('current_step').notNull().default(0),
     status: text('status').notNull().default('Draft'),
+    progressPercent: integer('progress_percent').notNull().default(10),
     contactEmail: text('contact_email').notNull(),
     contactPhone: text('contact_phone').notNull(),
     address: text('address').notNull(),
@@ -161,6 +165,46 @@ export const statusEvents = sqliteTable(
   ],
 );
 
+export const notifications = sqliteTable(
+  'notifications',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    applicationId: text('application_id').notNull(),
+    titleEn: text('title_en').notNull(),
+    titleHi: text('title_hi').notNull(),
+    bodyEn: text('body_en').notNull(),
+    bodyHi: text('body_hi').notNull(),
+    eventType: text('event_type').notNull(),
+    channel: text('channel').notNull().default('In-app'),
+    read: integer('read', { mode: 'boolean' }).notNull().default(false),
+    createdAt: text('created_at').notNull(),
+  },
+  (table) => [
+    index('notification_user_idx').on(table.userId, table.createdAt),
+    index('notification_application_idx').on(table.applicationId),
+  ],
+);
+
+export const adminAuditLogs = sqliteTable(
+  'admin_audit_logs',
+  {
+    id: text('id').primaryKey(),
+    adminId: text('admin_id').notNull(),
+    applicationId: text('application_id').notNull(),
+    previousStatus: text('previous_status').notNull(),
+    nextStatus: text('next_status').notNull(),
+    progressPercent: integer('progress_percent').notNull(),
+    citizenMessage: text('citizen_message').notNull(),
+    whatsappQueued: integer('whatsapp_queued', { mode: 'boolean' }).notNull().default(true),
+    createdAt: text('created_at').notNull(),
+  },
+  (table) => [
+    index('admin_audit_application_idx').on(table.applicationId, table.createdAt),
+    index('admin_audit_admin_idx').on(table.adminId, table.createdAt),
+  ],
+);
+
 export const assistantRequests = sqliteTable(
   'assistant_requests',
   {
@@ -210,4 +254,6 @@ export type RecoveryEvent = typeof recoveryEvents.$inferSelect;
 export type ApplicationDocument = typeof applicationDocuments.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type StatusEvent = typeof statusEvents.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
 export type ServiceApplication = typeof serviceApplications.$inferSelect;

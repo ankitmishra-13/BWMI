@@ -29,6 +29,13 @@
       "when": 1788394027175,
       "tag": "0003_tranquil_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788508596426,
+      "tag": "0004_high_micromax",
+      "breakpoints": true
     }
   ]
 }

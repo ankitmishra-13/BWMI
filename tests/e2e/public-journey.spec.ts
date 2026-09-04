@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 
 test('editorial service hub is clear and accessible', async ({ page }) => {
   await page.goto('/en');
+  await page.waitForLoadState('networkidle');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Transport services');
   await expect(page.getByText('Independent hackathon prototype—not an official government service').first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore all services' }).first()).toHaveAttribute('href', '/en/services');
@@ -23,6 +24,7 @@ test('editorial service hub is clear and accessible', async ({ page }) => {
 
 test('responsive header exposes the complete shadcn navigation menu', async ({ page }) => {
   await page.goto('/en');
+  await page.waitForLoadState('networkidle');
   const viewport = page.viewportSize();
   if (viewport && viewport.width < 1024) {
     const mobileNav = page.locator('details.mobile-nav');
@@ -85,10 +87,40 @@ test('public demo credentials are visible and non-sensitive', async ({ page }) =
   await expect(page.getByText('Synthetic data only')).toBeVisible();
 });
 
+test('quick auth dialog exposes registration and mock DigiLocker onboarding', async ({ page }) => {
+  await page.goto('/en');
+  await page.waitForLoadState('networkidle');
+  if ((page.viewportSize()?.width ?? 1280) < 640) {
+    await page.locator('details.mobile-nav > summary').click();
+  }
+  await page.getByRole('button', { name: 'Sign in' }).first().click();
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Sign in to Raahi' })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Create account' }).click();
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Create your synthetic account' })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('Step 1 of 4')).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('dialog').getByText('Step 2 of 4')).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('123456');
+});
+
+test('admin demo signs in to the application operations dashboard', async ({ page }) => {
+  await page.goto('/admin/login');
+  await expect(page.getByLabel('Admin email')).toHaveValue('admin.demo@bwmi.test');
+  await expect(page.getByLabel('Password')).toHaveValue('RaahiAdmin#2026');
+  await Promise.all([
+    page.waitForURL(/\/admin$/, { timeout: 60_000 }),
+    page.getByRole('button', { name: 'Open admin dashboard' }).click(),
+  ]);
+  await expect(page.getByRole('heading', { name: 'Application control plane' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Processing funnel' })).toBeVisible();
+  await expect(page.getByRole('table')).toBeVisible();
+});
+
 test('readiness copilot prepares and recovers a complete renewal', async ({ page }) => {
   test.setTimeout(240_000);
   const renewalExpect = expect.configure({ timeout: 30_000 });
   await page.goto('/en/readiness');
+  await page.waitForLoadState('networkidle');
   await renewalExpect(page.getByRole('heading', { name: 'Know what you need before you begin.' })).toBeVisible();
   await page.getByLabel('Your situation').fill('I am 55, my private licence expires next month, and I live in Delhi.');
   await page.getByRole('button', { name: 'Understand my situation' }).click();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applicationUpdateSchema, contactSchema, documentSchema, serviceApplicationUpdateSchema, syntheticProfileSchema } from '@/lib/validation';
+import { adminStatusUpdateSchema, applicationUpdateSchema, contactSchema, documentSchema, serviceApplicationUpdateSchema, syntheticProfileSchema, syntheticRegistrationSchema } from '@/lib/validation';
 
 describe('renewal validation', () => {
   it('accepts synthetic contact details', () => {
@@ -35,5 +35,17 @@ describe('renewal validation', () => {
   it('accepts only an explicitly mock payment method', () => {
     expect(applicationUpdateSchema.safeParse({ step: 5, data: { paymentMethod: 'mock-card' } }).success).toBe(true);
     expect(applicationUpdateSchema.safeParse({ step: 5, data: { paymentMethod: 'upi' } }).success).toBe(false);
+  });
+
+  it('requires the visible OTP and explicit mock DigiLocker consent for registration', () => {
+    const registration = { fullName: 'Meena Sharma', email: 'meena.demo@bwmi.test', syntheticPhone: '+91 91234 56789', locale: 'en', otp: '123456', digilockerConsent: 'yes' } as const;
+    expect(syntheticRegistrationSchema.safeParse(registration).success).toBe(true);
+    expect(syntheticRegistrationSchema.safeParse({ ...registration, otp: '654321' }).success).toBe(false);
+    expect(syntheticRegistrationSchema.safeParse({ ...registration, email: 'meena@example.com' }).success).toBe(false);
+  });
+
+  it('keeps admin status updates inside the visible progress contract', () => {
+    expect(adminStatusUpdateSchema.safeParse({ status: 'Under review', progressPercent: 70, message: 'Your synthetic application is now under review.', queueWhatsapp: true }).success).toBe(true);
+    expect(adminStatusUpdateSchema.safeParse({ status: 'Under review', progressPercent: 140, message: 'Too far.', queueWhatsapp: true }).success).toBe(false);
   });
 });

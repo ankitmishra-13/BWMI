@@ -96,6 +96,22 @@ export const syntheticProfileSchema = z.object({
   preferredLocale: z.enum(['en', 'hi']),
 });
 
+export const syntheticRegistrationSchema = z.object({
+  fullName: z.string().trim().min(2).max(60),
+  email: z.string().trim().email().max(120).refine((value) => value.toLowerCase().endsWith('@bwmi.test'), 'Use a fictional @bwmi.test address.'),
+  syntheticPhone: z.string().trim().regex(/^\+91 [6-9]\d{4} \d{5}$/, 'Use the displayed synthetic mobile format.'),
+  locale: z.enum(['en', 'hi']),
+  otp: z.literal('123456'),
+  digilockerConsent: z.literal('yes'),
+});
+
+export const adminStatusUpdateSchema = z.object({
+  status: z.enum(['Submitted', 'Documents checking', 'Under review', 'Approved', 'Action required']),
+  progressPercent: z.number().int().min(0).max(100),
+  message: z.string().trim().min(12).max(240),
+  queueWhatsapp: z.boolean().default(true),
+});
+
 export type ContactInput = z.infer<typeof contactSchema>;
 export type ReadinessInput = z.infer<typeof readinessInputSchema>;
 export type ReadinessCopilotOutput = z.infer<typeof readinessCopilotOutputSchema>;
@@ -106,3 +122,5 @@ export type ServiceApplicationDetailsInput = z.infer<typeof serviceApplicationDe
 export type ServiceApplicationUpdate = z.infer<typeof serviceApplicationUpdateSchema>;
 export type MockPaymentMethod = z.infer<typeof mockPaymentMethodSchema>;
 export type SyntheticProfileInput = z.infer<typeof syntheticProfileSchema>;
+export type SyntheticRegistrationInput = z.infer<typeof syntheticRegistrationSchema>;
+export type AdminStatusUpdateInput = z.infer<typeof adminStatusUpdateSchema>;

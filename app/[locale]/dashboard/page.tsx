@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, CarFront, CheckCircle2, Clock3, FileCheck2, M
 import { notFound } from 'next/navigation';
 import { requireChatGPTUser } from '@/app/chatgpt-auth';
 import { AccountShell } from '@/components/account-shell';
+import { ApplicationTimeline } from '@/components/application-timeline';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,8 +33,10 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           <p className="eyebrow">{copy.workspaceEyebrow}</p>
           <div className="mt-2 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div><h1 className="max-w-4xl text-4xl leading-[1.02] tracking-[-.035em] sm:text-6xl">{locale === 'hi' ? 'आपका काल्पनिक परिवहन कार्यक्षेत्र' : 'Your synthetic transport workspace'}</h1><p className="mt-3 text-muted-foreground">{copy.welcome}, {licence.holderName}. {locale === 'hi' ? 'यहाँ कोई वास्तविक नागरिक डेटा नहीं है।' : 'No real citizen data appears here.'}</p></div>
-            <Button asChild size="lg"><Link href={localPath(locale, '/readiness')}>{locale === 'hi' ? 'तैयारी जाँच से शुरू करें' : 'Start with readiness check'}<ArrowRight /></Link></Button>
+            <Button asChild size="lg"><Link href={localPath(locale, '/readiness')}>{locale === 'hi' ? 'Raahi से पूछें' : 'Ask Raahi'}<ArrowRight /></Link></Button>
           </div>
+
+          {applications[0] && <div className="mt-10"><ApplicationTimeline application={applications[0]} locale={locale} compact /></div>}
 
           <section aria-labelledby="licence-heading" className="ios-panel mt-10 overflow-hidden">
             <div className="grid lg:grid-cols-[1.45fr_.55fr]">
