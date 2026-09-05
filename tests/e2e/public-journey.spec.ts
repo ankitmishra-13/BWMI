@@ -114,7 +114,26 @@ test('admin demo signs in to the application operations dashboard', async ({ pag
   await page.waitForLoadState('networkidle');
   await expect(page.getByRole('heading', { name: 'Operations at a glance' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Processing funnel' })).toBeVisible();
-  if ((page.viewportSize()?.width ?? 1280) < 768) {
+  if ((page.viewportSize()?.width ?? 1280) >= 768) {
+    await page.getByRole('button', { name: 'Collapse or expand navigation' }).click();
+    await page.waitForTimeout(250);
+    const menuAlignment = await page.locator('[data-sidebar="menu-button"]:visible').evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const buttonBox = button.getBoundingClientRect();
+        const iconBox = button.querySelector('svg')?.getBoundingClientRect();
+        return {
+          buttonCenter: buttonBox.left + buttonBox.width / 2,
+          iconCenter: iconBox ? iconBox.left + iconBox.width / 2 : null,
+        };
+      }),
+    );
+    const buttonCenters = menuAlignment.map(({ buttonCenter }) => buttonCenter);
+    expect(Math.max(...buttonCenters) - Math.min(...buttonCenters)).toBeLessThan(1);
+    for (const { buttonCenter, iconCenter } of menuAlignment) {
+      expect(iconCenter).not.toBeNull();
+      expect(Math.abs(buttonCenter - (iconCenter ?? buttonCenter))).toBeLessThan(1);
+    }
+  } else {
     await page.getByRole('button', { name: 'Collapse or expand navigation' }).click();
   }
   await page.getByRole('link', { name: 'Regions', exact: true }).click();
